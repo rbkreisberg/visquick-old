@@ -8,21 +8,35 @@ JSDOC_COMPILER = \
 		/local/tools/jsdoc-toolkit/jsrun.sh -t=$(JSDOCTEMPLATEDIR)
 
 all: \
+	full \
+	min
+
+full: \
 	vq.js \
-	vq.min.js \
 	vq.circvis.js \
-	vq.circvis.min.js \
 	vq.linear_browser.js \
-	vq.linear_browser.min.js \
 	vq.brush_link.js \
-	vq.brush_link.min.js \
 	vq.chromavis.js \
-	vq.chromavis.min.js \
 	vq.cubbyhole.js \
-	vq.cubbyhole.min.js \
 	vq.violinplot.js \
+	vq.stemplot.js \
+	vq.scatterplot.js \
+	vq.flexscroll.js \
+	vq.omics_heatmap.js \
+	vq.par_coord.js
+
+min: \
+	vq.min.js \
+	vq.circvis.min.js \
+	vq.linear_browser.min.js \
+	vq.brush_link.min.js \
+	vq.chromavis.min.js \
+	vq.cubbyhole.min.js \
 	vq.violinplot.min.js \
-	vq.par_coord.js \
+	vq.stemplot.min.js \
+	vq.scatterplot.min.js \
+	vq.flexscroll.min.js \
+	vq.omics_heatmap.min.js \
 	vq.par_coord.min.js
 
 .INTERMEDIATE vq.js: \
@@ -56,6 +70,18 @@ vq.cubbyhole.js: \
 vq.violinplot.js: \
 	src/violinplot/violinplot.js
 
+vq.stemplot.js: \
+	src/stemplot/stemplot.js
+
+vq.scatterplot.js: \
+	src/scatterplot/scatterplot.js
+
+vq.flexscroll.js: \
+	src/flexscroll/flexscroll.js
+
+vq.omics_heatmap.js: \
+	src/omics_heatmap/omics_heatmap.js
+
 vq.par_coord.js: \
 	src/par_coord/parallel_coordinates.js
 
@@ -73,7 +99,11 @@ docs:
 	$(JSDOC_COMPILER) . -d=docs
 
 clean_docs:
-	rm -rf docs\
+	rm -rf docs
 
 clean:
 	rm -f vq*.js
+
+make_zip:
+	zip visquick_full.zip *.js
+	zip visquick_min.zip *.min.js
