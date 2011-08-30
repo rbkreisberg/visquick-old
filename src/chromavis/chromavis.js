@@ -24,6 +24,8 @@ vq.ChromaVis = function() {
     this.context_height(50);
     this.max_y_axis_value(1);
     this.min_y_axis_value(1);
+    this.max_y(1);
+    this.min_y(1);
     this.uuid(vq.utils.VisUtils.guid());
 
 };
@@ -36,6 +38,8 @@ vq.ChromaVis.prototype
         .property('min_x_axis_value',Number)
         .property('max_y_axis_value',Number)
         .property('min_y_axis_value',Number)
+        .property('max_y',Number)
+        .property('min_y',Number)
         .property('auto_scale_y',Boolean)
         .property('auto_scale_x',Boolean)
         .property('auto_update_scale_y',Boolean)
@@ -123,13 +127,14 @@ vq.ChromaVis.prototype._render = function() {
     this.visibleHeight = (this.height() - this.vertical_padding() * 2);
     this.focus_height = this.visibleHeight - this.context_height();
     this.posX =  pv.Scale.linear().range(0,that.visibleWidth);
+	this.min_x = pv.min(dataObj.data_array,function(a) { return pv.min(a[dataObj.data_contents_id],function(b) {return b[dataObj.x_column_id];});});
+	this.max_x = pv.max(dataObj.data_array,function(a) { return pv.max(a[dataObj.data_contents_id],function(b) {return b[dataObj.x_column_id];});});
 
+        this.max_y(pv.max(dataObj.data_array,function(a) { return pv.max(a[dataObj.data_contents_id],function(b) {return b[dataObj.y_column_id];});}));
 
-    var  min_x =  that.auto_scale_x()  ?
-            pv.min(dataObj.data_array,function(a) { return pv.min(a[dataObj.data_contents_id],function(b) {return b[dataObj.x_column_id];});}):
+    var  min_x =  that.auto_scale_x()  ? this.min_x :
             that.min_x_axis_value(),
-         max_x =  that.auto_scale_x()  ?
-            pv.max(dataObj.data_array,function(a) { return pv.max(a[dataObj.data_contents_id],function(b) {return b[dataObj.x_column_id];});}) :
+         max_x =  that.auto_scale_x()  ? this.max_x :
             that.max_x_axis_value();
 
     that.min_x_axis_value(min_x);
@@ -160,12 +165,12 @@ vq.ChromaVis.prototype._render = function() {
 
     function remove_vals() { that.show_vals = false; that.mouse_x = null; x_label.render(); return legend;}
 
-    var     x = pv.Scale.linear(that.min_x_axis_value(),that.max_x_axis_value())
+   
+ var     x = pv.Scale.linear(that.min_x_axis_value(),that.max_x_axis_value())
             .range(0,that.visibleWidth),
             scale_height = this.focus_height - 4,
              min_val = that.min_y_axis_value(),
-            max_val  = that.auto_scale_y()  ?
-                    pv.max(dataObj.data_array,function(a) { return pv.max(a[dataObj.data_contents_id],function(b) {return b[dataObj.y_column_id];});}) :
+            max_val  = that.auto_scale_y()  ? this.max_y() :
                      this.max_y_axis_value(),
             yScale = pv.Scale.linear(min_val,max_val ).range(0,scale_height);
     dataObj.context_yScale = pv.Scale.linear(min_val,max_val ).range(0,that.context_height()-1);
