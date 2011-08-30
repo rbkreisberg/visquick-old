@@ -12,7 +12,7 @@
 *
 *
 * <pre> {
-*     data_array : {Array},
+*         data_array : {Array},
 *	  xcolumnid : {string},
 *	  ycolumnid : {string},
 *	  valuecolumnid : {string},
@@ -23,16 +23,17 @@
 *	  fill_style : {Function} or {string},
 *	  stroke_style : {Function} or {string},
 *	  radius : {Number},
+*	  radial_interval : {Number},
 *	  fill_style : {Function} or {string},
 *	  stroke_style : {Function} or {string},
-*     show_points : {Boolean},
-*       notifier : {Function},
+*     	  show_points : {Boolean},
+*         notifier : {Function},
 * 	  PLOT : {
 *			width : {Number},
 *			height : {Number},
 *			container : {string}  or {HTMLElement}
-*          vertical_padding : {Number},
-*          horizontal_padding : {Number},
+*          		vertical_padding : {Number},
+*          		horizontal_padding : {Number},
 *			}
 *	}
 *	</pre>
@@ -216,7 +217,7 @@ vq.CubbyHole.prototype.draw = function(data) {
                 ((Math.PI / 4) * (ring_number(index)%2));
         };
 
-        var radial_interval = 6;
+        var radial_interval = dataObj._radial_interval;
 
         var radius = function(index) {
             return (ring_number(index) * radial_interval);
@@ -311,11 +312,11 @@ vq.models.CubbyHoleData.prototype.setDataModel = function () {
             return 'steelblue';
         }},
         {label : '_radius', id: 'radius',cast :vq.utils.VisUtils.wrapProperty, defaultValue : function() {
-            return 2;
-        }},
+            return 2; }},
         {label : '_shape', id: 'shape',cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() {
             return 'dot';
         }},
+        {label : '_radial_interval', id: 'radial_interval',cast :Number, defaultValue : 6 },
         {label : '_showPoints', id: 'show_points',cast :Boolean, defaultValue : true},
         {label : '_notifier', id: 'notifier', cast : Function, defaultValue : function() {
             return null;
