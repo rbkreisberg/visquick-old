@@ -39,7 +39,7 @@ min: \
 	vq.omics_heatmap.min.js \
 	vq.par_coord.min.js
 
-.INTERMEDIATE vq.js: \
+vq.js: \
 	vq.core.js 
 
 vq.core.js: \
