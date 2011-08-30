@@ -40,9 +40,6 @@ min: \
 	vq.par_coord.min.js
 
 vq.js: \
-	vq.core.js 
-
-vq.core.js: \
 	src/core/base.js \
 	src/core/vis.js \
 	src/core/models.js \
