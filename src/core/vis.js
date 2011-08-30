@@ -1,6 +1,3 @@
-/** @namespace The namespace for utility classes focused on visualization tools. **/
-vq.utils = {};
-
 /** @class The abstract base class for the VisQuick tools.  It provides the base properties.
  * @extends vq.Base
  */

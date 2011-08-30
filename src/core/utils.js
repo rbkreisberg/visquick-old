@@ -1,5 +1,7 @@
 /* vq.utils.js */
 
+/** @namespace The namespace for utility classes focused on visualization tools. **/
+vq.utils = {};
 /**
  *
  *
