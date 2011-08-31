@@ -183,10 +183,12 @@ vq.ViolinPlot.prototype.draw = function(data) {
         }
 
         var vis = new pv.Panel()
-                .width(that._visWidth)
-                .height(that._visHeight)
+                .width(that.width())
+                .height(that.height())
+                .top(that.vertical_padding())
                 .bottom(that.vertical_padding())
                 .left(that.horizontal_padding())
+                .right(that.horizontal_padding())
                 .strokeStyle("#aaa")
                 .events("all")
                 .event("mousemove", pv.Behavior.point())
