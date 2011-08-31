@@ -133,6 +133,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
         var data_summary = dataObj.data_summary;
         var summary_map = {};
         var highest = -9999999,lowest = 9999999;
+	 if (typeof data_array[0][x] == 'number') data_array.sort(function(a,b) { return a[x]-b[x];} ); //sort numerically ascending
          var xScale = pv.Scale.ordinal(data_array,function(val){return val[x];}).splitBanded(0, that._visWidth,0.8);
         var bandWidth = xScale.range().band / 2;
 
@@ -144,11 +145,13 @@ vq.ViolinPlot.prototype.draw = function(data) {
             category.bottom = minY;
             category.top = maxY;
             category.mean = pv.mean(category[y]);
-            if (sampleCount <=1) {
+            if (sampleCount <=4) {
                 summary_map[category[x]] = category;
                 category.dist=[];
                 category.bandScale=0;
                 category.setSize=1;
+		highest = maxY > highest ? maxY : highest;
+		lowest = minY < lowest ? minY : lowest;
                 return;
             }
             var quartiles = pv.Scale.quantile(category[y]).quantiles(4).quantiles();
@@ -159,7 +162,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
                             value : category[y].filter(function(val) { return val >= subset && val < subset + setSize;}).length/category[y].length};
             });
             category.bandScale =  pv.Scale.linear(0,pv.max(category.dist,function(val) { return val.value;})).range(0,bandWidth);
-              highest = maxY+ 3*setSize/2 > highest ? maxY+ 3*setSize/2 : highest;
+            highest = maxY+ 3*setSize/2 > highest ? maxY+ 3*setSize/2 : highest;
             lowest = minY- 3*setSize/2 < lowest ? minY- 3*setSize/2 : lowest;
             category.setSize=setSize;
             summary_map[category[x]] = category;
