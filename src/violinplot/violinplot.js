@@ -111,11 +111,11 @@ vq.ViolinPlot.prototype.draw = function(data) {
 
     function trans() {
         var t = this.transform().invert();
-        var w = that._visWidth, width = w;
-        var h = that._visHeight, height = h;
+        var w = that._visWidth;
+        var h = that._visHeight;
         var  halfY = (showMaxY - showMinY) / 2,
                   centerY = showMaxY - halfY,
-                scaleY = 2 * halfY / height;
+                scaleY = 2 * halfY / h;
 
         //xScale.domain(t.x * scaleX - (halfX) + centerX, centerX + (w * t.k + t.x) * scaleX - halfX);
         yScale.domain(-1 * ( h * t.k + (t.y)) * scaleY + halfY + centerY, -1 * ( t.y) * scaleY + halfY + centerY);

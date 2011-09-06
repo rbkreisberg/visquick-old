@@ -99,8 +99,8 @@ vq.CubbyHole.prototype.draw = function(data) {
     this.data = new vq.models.CubbyHoleData(data);
 
     this._setOptionDefaults(this.data);
-    this._visHeight = this.height() - ( 2 * this.vertical_padding());
-    this._visWidth = this.width() - ( 2 * this.horizontal_padding());
+//    this._visHeight = this.height() - ( 2 * this.vertical_padding());
+//    this._visWidth = this.width() - ( 2 * this.horizontal_padding());
 
     var div = this.container();
 
@@ -112,8 +112,8 @@ vq.CubbyHole.prototype.draw = function(data) {
         var value = dataObj.COLUMNID.value;
 
         var data_array = dataObj.data;
-         var xScale = pv.Scale.ordinal(dataObj.sortOrderX).splitBanded(0, that._visWidth,0.8);
-        var yScale = pv.Scale.ordinal(dataObj.sortOrderY).splitBanded(0, that._visHeight,0.8);
+        var xScale = pv.Scale.ordinal(dataObj.sortOrderX).splitBanded(0, that.width(),0.8);
+        var yScale = pv.Scale.ordinal(dataObj.sortOrderY).splitBanded(0, that.height(),0.8);
         var bandWidth = xScale.range().band / 2;
         var bandHeight = yScale.range().band / 2;
         var padHeight = bandHeight /4;
