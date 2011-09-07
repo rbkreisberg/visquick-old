@@ -312,7 +312,7 @@ vq.CircVis.prototype._add_ticks = function(outerRadius) {
             include_header : false,
             include_footer : true,
             self_hover : true,
-            timeout : 1100,
+            timeout : 50,
             data_config : dataObj.ticks.tooltipItems,
             tool_config : dataObj.ticks.tooltipLinks
         }
@@ -435,6 +435,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
             include_header : false,
             include_footer : true,
             self_hover : true,
+            timeout: 50,
             data_config :
             dataObj._wedge[index]._tooltipItems,
             tool_config : dataObj._wedge[index]._tooltipLinks
@@ -550,7 +551,7 @@ vq.CircVis.prototype._add_network = function () {
            include_header : false,
            include_footer : false,
            self_hover : true,
-           timeout : 500,
+           timeout : 50,
            data_config :
            dataObj._network.node_tooltipItems,
            tool_config : dataObj._network.node_tooltipLinks
@@ -569,7 +570,7 @@ vq.CircVis.prototype._add_network = function () {
            include_footer : false,
            self_hover : true,
            param_data : true,
-           timeout : 500,
+           timeout : 50,
            data_config :
            dataObj._network.link_tooltipItems,
            tool_config :
@@ -966,7 +967,7 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : 'ticks.listener', id: 'TICKS.OPTIONS.listener', cast : Function, defaultValue : function() {return null;} },
     {label : 'ticks.display_legend', id: 'TICKS.OPTIONS.display_legend', cast : Boolean, defaultValue : true },
     {label : 'ticks.legend_corner', id: 'TICKS.OPTIONS.legend_corner', cast : String, defaultValue : 'nw' },
-    {label : 'ticks.overlap_distance', id: 'TICKS.OPTIONS.overlap_distance', cast : Number, defaultValue: 7000000.0 },
+    {label : 'ticks.overlap_distance', id: 'TICKS.OPTIONS.overlap_distance', cast : Number, optional: true},
     {label : 'ticks.fill_style', id: 'TICKS.OPTIONS.fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return 'red';}},
      {label : 'ticks.stroke_style', id: 'TICKS.OPTIONS.stroke_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return 'white';}},
      {label : '_wedge' , id:'WEDGE', optional : true}
@@ -1131,7 +1132,12 @@ vq.models.CircVisData.prototype._setupData =  function() {
         links_array = [];
     }
 
+
     if (this.ticks != undefined && this.ticks._data_array != undefined && this.ticks._data_array != null) {
+        if (that.ticks.overlap_distance === undefined) {
+            var overlap_ratio =  7000000.0 / 3080419480;
+             that.ticks.overlap_distance = overlap_ratio * totalChromLength;
+        }
         var tick_array = vq.utils.VisUtils.layoutChrTicks(that.ticks._data_array,that.ticks.overlap_distance);
         var ticks_map = pv.nest(tick_array)
                 .key(function(d) {return d.chr;})
