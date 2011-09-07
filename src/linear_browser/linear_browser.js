@@ -161,14 +161,12 @@ vq.LinearBrowser.prototype._render = function() {
 
         switch (dataObj.tracks[index].type){
 
-            case  'scatter' :
-
+            case 'scatter':
+            case 'scatterplot':
                  shape = dataObj.tracks[index].shape;
                 radius = dataObj.tracks[index].radius;
-
                 min_val = dataObj.tracks[index].min_value != undefined ? dataObj.tracks[index].min_value :
                         pv.min(dataObj.tracks[index].data_array,function(a) { return a.value;});
-
                 max_val  = dataObj.tracks[index].max_value != undefined ? dataObj.tracks[index].max_value :
                         pv.max(dataObj.tracks[index].data_array,function(a) { return a.value;});
                 yScale = pv.Scale.linear(min_val,max_val ).range(0,track_height);
@@ -340,7 +338,7 @@ vq.LinearBrowser.prototype._render = function() {
                 item = plot_track.add(pv.Dot)
                         .data(function(d,obj,index){ return init(index);})
                         .left(function(c) { return that.posX(c.start);})
-                        .bottom(function(c,d) { return c.level*(d.tile_height + d.tile_padding) + radius;})
+                        .bottom(function(c,d) { return c.level*(d.tile_height + d.tile_padding) + (radius*2);})
                         .shape(shape)
                         .radius(radius)
                         .events('painted')
@@ -423,6 +421,7 @@ vq.LinearBrowser.prototype._render = function() {
 
             switch (dataObj.tracks[index].type){
                  case 'scatter':
+                 case 'scatterplot':
                      context_track.add(pv.Dot)
                             .data(function(d){ return d.data_array;})
                             .left(function(c) { return x(c.start);})
@@ -458,7 +457,7 @@ vq.LinearBrowser.prototype._render = function() {
                             .left(function(c) { return x(c.start);})
                             .shape('circle')
                             .radius(.5)
-                            .bottom(function(c,d) { return c.level*(d.tile_padding + d.tile_height) * context_scale;})
+                            .bottom(function(c,d) { return (c.level*(d.tile_padding + d.tile_height) + (d.radius*2)) * context_scale;})
                             .fillStyle(function() { return "#00c";} )
                             .strokeStyle(function() { return "#009";} );
                     break;
@@ -571,9 +570,10 @@ vq.models.LinearBrowserData.prototype._build_data = function(data_struct) {
                 if (b.type == 'tile' || b.type == 'glyph') {
                     var max_tile_level;
                        max_tile_level = b.tile_show_all_tiles ?
-                               Math.floor(b.track_height / (b.tile_height + b.tile_padding)) :
+                               Math.floor((b.track_height - (b.radius * 2)) / (b.tile_height + b.tile_padding)) :
                                undefined;
-                    b.data_array = vq.utils.VisUtils.layoutChrTiles(b.data_array,b.tile_overlap_distance,max_tile_level);
+                    b.data_array = (b.type =='tile' ? vq.utils.VisUtils.layoutChrTiles(b.data_array,b.tile_overlap_distance,max_tile_level) :
+                            vq.utils.VisUtils.layoutChrTicks(b.data_array,b.tile_overlap_distance,max_tile_level));
                 }
             });
 
