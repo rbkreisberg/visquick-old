@@ -104,15 +104,13 @@ vq.ViolinPlot.prototype.draw = function(data) {
     this.data = new vq.models.ViolinPlotData(data);
 
     this._setOptionDefaults(this.data);
-    this._visHeight = this.height() - ( 2 * this.vertical_padding());
-    this._visWidth = this.width() - ( 2 * this.horizontal_padding());
 
     var div = this.container();
 
     function trans() {
         var t = this.transform().invert();
-        var w = that._visWidth;
-        var h = that._visHeight;
+        var w = that.width();
+        var h = that.height();
         var  halfY = (showMaxY - showMinY) / 2,
                   centerY = showMaxY - halfY,
                 scaleY = 2 * halfY / h;
@@ -134,7 +132,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
         var summary_map = {};
         var highest = -9999999,lowest = 9999999;
 	 if (typeof data_array[0][x] == 'number') data_array.sort(function(a,b) { return a[x]-b[x];} ); //sort numerically ascending
-         var xScale = pv.Scale.ordinal(data_array,function(val){return val[x];}).splitBanded(0, that._visWidth,0.8);
+         var xScale = pv.Scale.ordinal(data_array,function(val){return val[x];}).splitBanded(0, that.width(),0.8);
         var bandWidth = xScale.range().band / 2;
 
         data_summary.forEach(function(category) {
@@ -176,7 +174,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
 
         //start protovis code
 
-        var yScale = pv.Scale.linear(showMinY, showMaxY).range(0, that._visHeight);
+        var yScale = pv.Scale.linear(showMinY, showMaxY).range(0, that.height());
 
         //identify selected Probeset, if passed in.
         var selectedProbesetId;
