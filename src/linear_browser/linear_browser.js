@@ -158,6 +158,8 @@ vq.LinearBrowser.prototype._render = function() {
                 .height(function(c) { return c.track_height+c.track_padding;});
 
         var yScale, min_val,max_val,plot_track,item,shape,radius;
+	var num_y_rule_lines = dataObj.tracks[index].num_y_rule_lines;
+
 
         switch (dataObj.tracks[index].type){
 
@@ -218,7 +220,7 @@ vq.LinearBrowser.prototype._render = function() {
                 track.add(pv.Rule)
                         .bottom(function(c) { return c.yScale(c.base_value);})
                         .add(pv.Rule)
-                        .data(function(c) { return c.yScale.ticks(dataObj.num_y_rule_lines);})
+                        .data(function(c) { return c.yScale.ticks(num_y_rule_lines);})
                         .bottom(function(c,d) {return d.yScale(c);})
                         .strokeStyle('#222')
                         .anchor('left').add(pv.Label)
@@ -279,7 +281,7 @@ vq.LinearBrowser.prototype._render = function() {
               track.add(pv.Rule)
                         .bottom(function(c) { return c.yScale(c.base_value);})
                         .add(pv.Rule)
-                        .data(function(c) { return c.yScale.ticks(dataObj.num_y_rule_lines);})
+                        .data(function(c) { return c.yScale.ticks(num_y_rule_lines);})
                         .bottom(function(c,d) {return d.yScale(c);})
                         .strokeStyle('#222')
                         .anchor('left').add(pv.Label)
@@ -340,7 +342,7 @@ vq.LinearBrowser.prototype._render = function() {
                 track.add(pv.Rule)
                         .bottom(function(c) { return c.yScale(c.base_value);})
                         .add(pv.Rule)
-                        .data(function(c) { return c.yScale.ticks(dataObj.num_y_rule_lines);})
+                        .data(function(c) { return c.yScale.ticks(num_y_rule_lines);})
                         .bottom(function(c,d) {return d.yScale(c);})
                         .strokeStyle('#222')
                         .anchor('left').add(pv.Label)
