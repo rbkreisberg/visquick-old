@@ -421,28 +421,36 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
     }
 
     var range_mean = dataObj._wedge[index]._base_plotValue != null ? dataObj._wedge[index]._base_plotValue :
-            (dataObj._wedge[index]._min_plotValue+ dataObj._wedge[index]._max_plotValue) / 2;
+        (dataObj._wedge[index]._min_plotValue+ dataObj._wedge[index]._max_plotValue) / 2;
     var y_axis = pv.Scale.linear(dataObj._wedge[index]._min_plotValue, dataObj._wedge[index]._max_plotValue).range(innerRadius,outerPlotRadius);
     var thresholded_innerRadius = function(d) { return Math.max(y_axis(Math.min(d,range_mean)),innerRadius); };
     var thresholded_outerRadius = function(d) { return Math.min(y_axis(Math.max(d,range_mean)),outerPlotRadius); };
-    var thresholded_radius = function(d) { return Math.min(Math.max(y_axis(d),innerRadius),outerPlotRadius); };
-
+    var thresholded_value_to_radius = function(d) { return Math.min(Math.max(y_axis(d),innerRadius),outerPlotRadius); };
+    var thresholded_radius = function(d) { return Math.min(Math.max(d,innerRadius),outerPlotRadius); };
+    var thresholded_tile_innerRadius = function(c,d) { return innerRadius + (d._tile_height + d._tile_padding) * c.level;};
+    var thresholded_tile_outerRadius = function(c,d) { return innerRadius + ((d._tile_height + d._tile_padding) * c.level) + d._tile_height;};
+    var glyph_distance = function(c,d) { return (((d._tile_height + d._tile_padding) * c.level)
+        + innerRadius + (d._radius() * 2));};
+    var checked_endAngle = function(c,d) {
+        if (this.parent.index+1 == dataObj._chrom.keys.length) { return dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2);}
+        else {return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),
+            dataObj.startAngle_map[dataObj._chrom.keys[(this.parent.index+1)%dataObj._chrom.keys.length]]);
+        }
+    };
     var feature_angle = function(d) { return dataObj.startAngle_map[d.chr] + dataObj.theta[d.chr](d.start); };
 
-     var behavior = function(d) {
+    var behavior = function(d) {
         return (pv.Behavior.hovercard(
-        {
-            include_header : false,
-            include_footer : true,
-            self_hover : true,
-            timeout: 50,
-            data_config :
-            dataObj._wedge[index]._tooltipItems,
-            tool_config : dataObj._wedge[index]._tooltipLinks
-        }
-                ).call(this,d));};
-
-
+            {
+                include_header : false,
+                include_footer : true,
+                self_hover : true,
+                timeout: 50,
+                data_config :
+                    dataObj._wedge[index]._tooltipItems,
+                tool_config : dataObj._wedge[index]._tooltipLinks
+            }
+        ).call(this,d));};
     //add a new panel each time we want to draw on top of the previously created image.
     var panel_layer = this.event_panel.add(pv.Panel)
             .fillStyle(null)
@@ -468,16 +476,16 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                     .text(function(i) {return y_axis.tickFormat(i);});
                     }
             panel_layer.add(pv.Wedge)	//histogram
-                    .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
-                    .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);	})
-                    .endAngle(function(c,d) {return dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1);})
-                    .innerRadius(function(c) { return thresholded_innerRadius(c.value);} )
-                    .outerRadius(function(c) { return thresholded_outerRadius(c.value); } )
-                    .strokeStyle(dataObj._wedge[index]._strokeStyle)
-                    .fillStyle(dataObj._wedge[index]._fillStyle)
-                    .cursor('pointer')
-                    .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
-                    .event('mouseover',behavior);
+                .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
+                .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);	})
+                .endAngle(checked_endAngle)
+                .innerRadius(function(c) { return thresholded_innerRadius(c.value);} )
+                .outerRadius(function(c) { return thresholded_outerRadius(c.value); } )
+                .strokeStyle(dataObj._wedge[index]._strokeStyle)
+                .fillStyle(dataObj._wedge[index]._fillStyle)
+                .cursor('pointer')
+                .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
+                .event('mouseover',behavior);
             break;
         case 'scatterplot':
             if(dataObj._wedge[index]._draw_axes) {
@@ -498,8 +506,8 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
             }
             panel_layer.add(pv.Dot)	//scatterplot
                     .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
-                    .left(function(c,d) { return width/2 + (thresholded_radius(c.value) * Math.cos(feature_angle(c))); })
-                    .bottom(function(c,d) { return height/2 + (-1 * (thresholded_radius(c.value)) * Math.sin(feature_angle(c))); })
+                    .left(function(c,d) { return width/2 + (thresholded_value_to_radius(c.value) * Math.cos(feature_angle(c))); })
+                    .bottom(function(c,d) { return height/2 + (-1 * (thresholded_value_to_radius(c.value)) * Math.sin(feature_angle(c))); })
                     .shape(dataObj._wedge[index]._shape)
                     .radius(dataObj._wedge[index]._radius)
                     .strokeStyle(dataObj._wedge[index]._strokeStyle)
@@ -508,35 +516,93 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                     .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
                     .event('mouseover',behavior);
             break;
-        case 'heatmap':
-            panel_layer.add(pv.Wedge)	//heatmap plot of cnv
+        case 'glyph':
+//            if(dataObj._wedge[index]._draw_axes) {
+//                dot = this.event_panel.add(pv.Dot)
+//                        .data(y_axis.ticks(4))
+//                        .fillStyle(null)
+//                        .strokeStyle("#444")
+//                        .lineWidth(1)
+//                        .radius(function(i) { return y_axis(i); } );
+//                dot.anchor("top").add(pv.Label)
+//                        .textBaseline("middle")
+//                        .textAlign("right")
+//                        .text(function(i) {return y_axis.tickFormat(i);});
+//                dot.anchor("bottom").add(pv.Label)
+//                        .textBaseline("middle")
+//                        .textAlign("right")
+//                        .text(function(i) {return y_axis.tickFormat(i);});
+//            }
+            panel_layer.add(pv.Dot)	//glyph
                     .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
-                    .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
-		    .endAngle(function(c,d) {
- 	                if (this.parent.index+1 == dataObj._chrom.keys.length) { return dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2);}       
-			else {
-                    	    return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[(this.parent.index+1)%dataObj._chrom.keys.length]]);
-  	  	  	} 
-  	 	    })
-                    .innerRadius(thresholded_innerRadius(dataObj._wedge[index]._min_plotValue) )
-                    .outerRadius(thresholded_outerRadius(dataObj._wedge[index]._max_plotValue) )
+                    .left(function(c,d) { return width/2 + (glyph_distance(c,dataObj._wedge[index])) *  Math.cos(feature_angle(c)); })
+                    .bottom(function(c,d) { return height/2 + (-1 * glyph_distance(c,dataObj._wedge[index]) * Math.sin(feature_angle(c))); })
+                    .shape(dataObj._wedge[index]._shape)
+                    .radius(dataObj._wedge[index]._radius)
                     .strokeStyle(dataObj._wedge[index]._strokeStyle)
                     .fillStyle(dataObj._wedge[index]._fillStyle)
                     .cursor('pointer')
                     .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
                     .event('mouseover',behavior);
             break;
+        case 'tile':
+//            if(dataObj._wedge[index]._draw_axes) {
+//                dot = this.event_panel.add(pv.Dot)
+//                        .data(y_axis.ticks(4))
+//                        .fillStyle(null)
+//                        .strokeStyle("#444")
+//                        .lineWidth(1)
+//                        .radius(function(i) { return y_axis(i); } );
+//                dot.anchor("top").add(pv.Label)
+//                        .textBaseline("middle")
+//                        .textAlign("right")
+//                        .text(function(i) {return y_axis.tickFormat(i);});
+//                dot.anchor("bottom").add(pv.Label)
+//                        .textBaseline("middle")
+//                        .textAlign("right")
+//                        .text(function(i) {return y_axis.tickFormat(i);});
+//            }
+            panel_layer.add(pv.Wedge)	//tile
+                .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
+                .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
+                .endAngle(checked_endAngle)
+                .innerRadius(function(c,d) { return thresholded_tile_innerRadius(c,dataObj._wedge[index]);} )
+                .outerRadius(function(c,d) { return thresholded_tile_outerRadius(c,dataObj._wedge[index]);} )
+                .strokeStyle(dataObj._wedge[index]._strokeStyle)
+                .fillStyle(dataObj._wedge[index]._fillStyle)
+                .cursor('pointer')
+                .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
+                .event('mouseover',behavior);
+            break;
+        case 'heatmap':
+            panel_layer.add(pv.Wedge)	//heatmap plot of cnv
+                .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
+                .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
+                .endAngle(function(c,d) {
+                    if (this.parent.index+1 == dataObj._chrom.keys.length) { return dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2);}
+                    else {return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),
+                        dataObj.startAngle_map[dataObj._chrom.keys[(this.parent.index+1)%dataObj._chrom.keys.length]]);
+                    }
+                })
+                .innerRadius(thresholded_innerRadius(dataObj._wedge[index]._min_plotValue) )
+                .outerRadius(thresholded_outerRadius(dataObj._wedge[index]._max_plotValue) )
+                .strokeStyle(dataObj._wedge[index]._strokeStyle)
+                .fillStyle(dataObj._wedge[index]._fillStyle)
+                .cursor('pointer')
+                .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
+                .event('mouseover',behavior);
+            break;
         case 'karyotype':
-             panel_layer.add(pv.Wedge)	//karyotype
-                    .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
-                    .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
-                    .endAngle(function(c,d) {return dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1);})
-                    .innerRadius(innerRadius )
-                    .outerRadius(outerPlotRadius )
-                    .fillStyle( function(d) {return d.value;})
-                    .cursor('pointer')
-                    .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
-                    .event('mouseover',behavior);
+            panel_layer.add(pv.Wedge)	//karyotype
+                .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
+                .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
+                .endAngle(checked_endAngle)
+                .innerRadius(innerRadius )
+                .outerRadius(outerPlotRadius )
+                .fillStyle( function(d) {return d.value;})
+                .cursor('pointer')
+                .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
+                .event('mouseover',behavior);
             break;
         default:
             console.warn('No plot type definition detected.');
@@ -640,7 +706,6 @@ vq.CircVis.prototype._add_network = function () {
             break;
         case('brighten'):
         default:
-        //node_colors = function(c,d) {return link_active(c,d) ? node_colors(c,d).brighter(2) : node_colors(c,d);};
     }
 
     function link_strokeStyle(c,d) {
@@ -973,8 +1038,8 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : 'ticks.display_legend', id: 'TICKS.OPTIONS.display_legend', cast : Boolean, defaultValue : true },
     {label : 'ticks.legend_corner', id: 'TICKS.OPTIONS.legend_corner', cast : String, defaultValue : 'nw' },
     {label : 'ticks.overlap_distance', id: 'TICKS.OPTIONS.overlap_distance', cast : Number, optional: true},
-    {label : 'ticks.fill_style', id: 'TICKS.OPTIONS.fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return 'red';}},
-     {label : 'ticks.stroke_style', id: 'TICKS.OPTIONS.stroke_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return 'white';}},
+    {label : 'ticks.fill_style', id: 'TICKS.OPTIONS.fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return pv.color('red');}},
+     {label : 'ticks.stroke_style', id: 'TICKS.OPTIONS.stroke_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return pv.color('white');}},
      {label : '_wedge' , id:'WEDGE', optional : true}
     ];
 };
@@ -1053,16 +1118,23 @@ vq.models.CircVisData.prototype._setupData =  function() {
     if (this._wedge != undefined) {
         this._wedge.forEach(function(wedge,index) {
 
-            cnv_map = pv.nest(wedge._data)
-                    .key(function(d) { return d.chr; } )
-                    .map();
+            if (wedge._plot_type == 'tile' || wedge._plot_type == 'glyph') {
+                var  max_tile_level = wedge._tile_show_all_tiles ?
+                    Math.floor((wedge._plot_height - (wedge._radius() * 4)) / (wedge._tile_height + wedge._tile_padding)) :
+                    undefined;
+                wedge._data = (wedge._plot_type =='tile' ? vq.utils.VisUtils.layoutChrTiles(wedge._data,wedge._tile_overlap_distance,max_tile_level) :
+                    vq.utils.VisUtils.layoutChrTicks(wedge._data,wedge._tile_overlap_distance,max_tile_level));
+            }
 
-        wedge._chr_map = [];
-        wedge._chr_map = pv.dict(that._chrom.keys, function(d)
+            cnv_map = pv.nest(wedge._data)
+                .key(function(d) { return d.chr; } )
+                .map();
+
+            wedge._chr_map = [];
+            wedge._chr_map = pv.dict(that._chrom.keys, function(d)
             { return cnv_map[d] === undefined ? [] : cnv_map[d];  });
 
             var value_label = wedge._value_label;
-
             deviation = pv.deviation(wedge._data, function(d) { return d[value_label];});
             median = pv.median(wedge._data, function(d) { return d[value_label];});
 
@@ -1179,28 +1251,31 @@ vq.models.CircVisData.WedgeData.prototype = pv.extend(vq.models.VisData);
 
 vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
  this._dataModel = [
-
-    {label : '_data', id: 'DATA.data_array', defaultValue : [ {"chr": "1", "end": 12784268, "start": 644269,
-                        "value": -0.058664}]},
-    {label : 'listener', id: 'OPTIONS.listener', defaultValue :  function(a,b) {} },
-    {label : '_plot_type', id: 'PLOT.type', defaultValue : 'histogram' },
-    {label : '_plot_height', id: 'PLOT.height', cast: Number, defaultValue : 100 },
-    {label : '_fillStyle', id: 'OPTIONS.fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) { return d.value >= 0 ? "rgba(20,40,200,0.6)" : "rgba(200,20,40,0.6)";} },
-    {label : '_strokeStyle', id: 'OPTIONS.stroke_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return d.value >= 0 ? "#00f" : "#f00";} },
-    {label : '_shape', id: 'OPTIONS.shape', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return 'circle';} },
-    {label : '_radius', id: 'OPTIONS.radius', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return 2;} },
-    {label : '_outer_padding', id: 'OPTIONS.outer_padding', cast : Number, defaultValue : 1 },
-    {label : '_min_plotValue', id: 'OPTIONS.min_value',  cast : Number , optional : true },
-    {label : '_max_plotValue', id: 'OPTIONS.max_value',  cast : Number , optional : true },
-    {label : '_value_label', id: 'OPTIONS.value_label', cast: String, defaultValue : 'value' },
-    {label : '_base_plotValue', id: 'OPTIONS.base_value', cast: Number, optional : true },
-    {label : '_legend_label', id: 'OPTIONS.legend_label', cast: String, defaultValue : '' },
-    {label : '_legend_desc', id: 'OPTIONS.legend_description', cast: String, defaultValue : '' },
-    {label : '_draw_axes', id: 'OPTIONS.draw_axes', cast: Boolean, defaultValue : true },
-    {label : 'tooltipFormat', id: 'OPTIONS.tooltipFormat', cast :vq.utils.VisUtils.wrapProperty,
-        defaultValue : function(c,d) { return "Chr " + d + "\nStart: " + c.start + "\nEnd: " + c.end;}   },
-    {label : '_tooltipItems', id: 'OPTIONS.tooltip_items',  defaultValue : {Chr:'chr',Start:'start',End:'end',Value:'value'} },
-     {label : '_tooltipLinks', id: 'OPTIONS.tooltip_links',  defaultValue : {} }
+     {label : '_data', id: 'DATA.data_array', defaultValue : [ {"chr": "1", "end": 12784268, "start": 644269,
+         "value": -0.058664}]},
+     {label : 'listener', id: 'OPTIONS.listener', defaultValue :  function(a,b) {} },
+     {label : '_plot_type', id: 'PLOT.type', defaultValue : 'histogram' },
+     {label : '_plot_height', id: 'PLOT.height', cast: Number, defaultValue : 100 },
+     {label : '_fillStyle', id: 'OPTIONS.fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) { return pv.color('red');} },
+     {label : '_strokeStyle', id: 'OPTIONS.stroke_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return pv.color('red');} },
+     {label : '_shape', id: 'OPTIONS.shape', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return 'circle';} },
+     {label : '_radius', id: 'OPTIONS.radius', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return 2;} },
+     {label : '_outer_padding', id: 'OPTIONS.outer_padding', cast : Number, defaultValue : 1 },
+     {label : '_min_plotValue', id: 'OPTIONS.min_value',  cast : Number , optional : true },
+     {label : '_max_plotValue', id: 'OPTIONS.max_value',  cast : Number , optional : true },
+     {label : '_value_label', id: 'OPTIONS.value_label', cast: String, defaultValue : 'value' },
+     {label : '_base_plotValue', id: 'OPTIONS.base_value', cast: Number, optional : true },
+     {label : '_legend_label', id: 'OPTIONS.legend_label', cast: String, defaultValue : '' },
+     {label : '_legend_desc', id: 'OPTIONS.legend_description', cast: String, defaultValue : '' },
+     {label : '_draw_axes', id: 'OPTIONS.draw_axes', cast: Boolean, defaultValue : true },
+     {label : '_tooltipFormat', id: 'OPTIONS.tooltipFormat', cast :vq.utils.VisUtils.wrapProperty,
+         defaultValue : function(c,d) { return "Chr " + d + "\nStart: " + c.start + "\nEnd: " + c.end;}   },
+     {label : '_tooltipItems', id: 'OPTIONS.tooltip_items',  defaultValue : {Chr:'chr',Start:'start',End:'end',Value:'value'} },
+     {label : '_tooltipLinks', id: 'OPTIONS.tooltip_links',  defaultValue : {} },
+     {label : '_tile_padding', id: 'OPTIONS.tile_padding', cast: Number, defaultValue : 5 },
+     {label : '_tile_overlap_distance', id: 'OPTIONS.tile_overlap_distance', cast: Number, defaultValue : 0.1 },
+     {label : '_tile_height', id: 'OPTIONS.tile_height', cast: Number, defaultValue : 5 },
+     {label : '_tile_show_all_tiles', id: 'OPTIONS.tile_show_all_tiles', cast: Boolean, defaultValue : false }
     ];
 };
 
