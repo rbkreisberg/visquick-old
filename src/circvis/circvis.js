@@ -512,7 +512,12 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
             panel_layer.add(pv.Wedge)	//heatmap plot of cnv
                     .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                     .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
-                    .endAngle(function(c,d) {return dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1);})
+		    .endAngle(function(c,d) {
+ 	                if (this.parent.index+1 == dataObj._chrom.keys.length) { return dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2);}       
+			else {
+                    	    return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[(this.parent.index+1)%dataObj._chrom.keys.length]]);
+  	  	  	} 
+  	 	    })
                     .innerRadius(thresholded_innerRadius(dataObj._wedge[index]._min_plotValue) )
                     .outerRadius(thresholded_outerRadius(dataObj._wedge[index]._max_plotValue) )
                     .strokeStyle(dataObj._wedge[index]._strokeStyle)
@@ -1027,16 +1032,16 @@ vq.models.CircVisData.prototype._setupData =  function() {
                                   return (normalizedLength[chrom_keys_array[this.index]] * 2 * Math.PI);} );
 
         theta[d] = pv.Scale.linear( 0 , chrom_length_map[d.toUpperCase()][0]['chr_length'])
-                .range(0,2 * Math.PI * normalizedLength[d]).nice();
+                .range(0,2 * Math.PI * normalizedLength[d]);
 
         if ( that._chrom.reverse_list != undefined &&
                 that._chrom.reverse_list.filter(function(c){return c == d;}).length > 0){  //defined as reversed!
             theta[d] = pv.Scale.linear( 0 , chrom_length_map[d.toUpperCase()][0]['chr_length'])
-                    .range(2 * Math.PI * normalizedLength[d],0).nice();
+                    .range(2 * Math.PI * normalizedLength[d],0);
 
         } else {
             theta[d] = pv.Scale.linear( 0 , chrom_length_map[d.toUpperCase()][0]['chr_length'])
-                    .range(0,2 * Math.PI * normalizedLength[d]).nice();
+                    .range(0,2 * Math.PI * normalizedLength[d]);
 
         }
     });

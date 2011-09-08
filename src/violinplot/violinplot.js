@@ -104,8 +104,6 @@ vq.ViolinPlot.prototype.draw = function(data) {
     this.data = new vq.models.ViolinPlotData(data);
 
     this._setOptionDefaults(this.data);
-    this._visHeight = this.height() - ( 2 * this.vertical_padding());
-    this._visWidth = this.width() - ( 2 * this.horizontal_padding());
 
     var div = this.container();
 

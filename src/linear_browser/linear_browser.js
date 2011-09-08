@@ -158,6 +158,8 @@ vq.LinearBrowser.prototype._render = function() {
                 .height(function(c) { return c.track_height+c.track_padding;});
 
         var yScale, min_val,max_val,plot_track,item,shape,radius;
+	var num_y_rule_lines = dataObj.tracks[index].num_y_rule_lines;
+
 
         switch (dataObj.tracks[index].type){
 
@@ -196,10 +198,19 @@ vq.LinearBrowser.prototype._render = function() {
                     .events('painted')
                         .radius(radius)
                         .strokeStyle(strokeStyle);
-                 if (dataObj.tracks[index].tooltipItems != undefined){
-                    item.event('mouseover',pv.Behavior.flextip({timeout: 200,include_footer : false, include_header : false,
-                                          data_config:dataObj.tracks[index].tooltipItems}));
-                }
+
+                    item.event('mouseover',
+                        pv.Behavior.hovercard(
+                            {
+                                include_header : false,
+                                include_footer : true,
+                                self_hover : true,
+                                timeout : 50,
+                                data_config :
+                                    dataObj.tracks[index]._tooltipItems,
+                                tool_config : dataObj.tracks[index]._tooltipLinks
+                            }
+                        ));
 
                 if (dataObj.tracks[index].notifier != undefined){
                     item
@@ -209,11 +220,9 @@ vq.LinearBrowser.prototype._render = function() {
                 track.add(pv.Rule)
                         .bottom(function(c) { return c.yScale(c.base_value);})
                         .add(pv.Rule)
-                        .data(function(c) { return c.yScale.ticks(3);})
+                        .data(function(c) { return c.yScale.ticks(num_y_rule_lines);})
                         .bottom(function(c,d) {return d.yScale(c);})
                         .strokeStyle('#222')
-                        .width(10)
-                        .left(0)
                         .anchor('left').add(pv.Label)
                         .font('4pt')
                         .text(function(c,d) {return d.yScale.tickFormat(c);});
@@ -251,27 +260,34 @@ vq.LinearBrowser.prototype._render = function() {
                         .fillStyle(fillStyle)
                         .events('painted')
                         .strokeStyle(strokeStyle);
-                if (dataObj.tracks[index].tooltipItems != undefined){
-                    item.event('mouseover',pv.Behavior.flextip({timeout: 200,include_footer : false, include_header : false,
-                                          data_config:dataObj.tracks[index].tooltipItems}));
-                }
+                item.event('mouseover',
+                    pv.Behavior.hovercard(
+                        {
+                            include_header : false,
+                            include_footer : true,
+                            self_hover : true,
+                            timeout : 50,
+                            data_config :
+                                dataObj.tracks[index]._tooltipItems,
+                            tool_config : dataObj.tracks[index]._tooltipLinks
+                        }
+                    ));
+
 
                 if (dataObj.tracks[index].notifier != undefined){
                             item.cursor('pointer')
                             .event('click',function(c,d){ d.notifier(c,d); });
                 }
-                track.add(pv.Rule)
+              track.add(pv.Rule)
                         .bottom(function(c) { return c.yScale(c.base_value);})
                         .add(pv.Rule)
-                        .data(function(c) { return c.yScale.ticks(5);})
+                        .data(function(c) { return c.yScale.ticks(num_y_rule_lines);})
                         .bottom(function(c,d) {return d.yScale(c);})
                         .strokeStyle('#222')
-                        .width(10)
-                        .left(0)
                         .anchor('left').add(pv.Label)
                         .font('4pt')
                         .text(function(c,d) {return d.yScale.tickFormat(c);});
-                break;
+            break;
 
             case 'bar':
 
@@ -306,10 +322,18 @@ vq.LinearBrowser.prototype._render = function() {
                         .fillStyle(fillStyle)
                         .events('painted')
                         .strokeStyle(strokeStyle);
-                if (dataObj.tracks[index].tooltipItems != undefined){
-                    item.event('mouseover',pv.Behavior.flextip({timeout: 200,include_footer : false, include_header : false,
-                                          data_config:dataObj.tracks[index].tooltipItems}));
-                }
+                item.event('mouseover',
+                    pv.Behavior.hovercard(
+                        {
+                            include_header : false,
+                            include_footer : true,
+                            self_hover : true,
+                            timeout : 50,
+                            data_config :
+                                dataObj.tracks[index]._tooltipItems,
+                            tool_config : dataObj.tracks[index]._tooltipLinks
+                        }
+                    ));
 
                 if (dataObj.tracks[index].notifier != undefined){
                             item.cursor('pointer')
@@ -318,11 +342,9 @@ vq.LinearBrowser.prototype._render = function() {
                 track.add(pv.Rule)
                         .bottom(function(c) { return c.yScale(c.base_value);})
                         .add(pv.Rule)
-                        .data(function(c) { return c.yScale.ticks(3);})
+                        .data(function(c) { return c.yScale.ticks(num_y_rule_lines);})
                         .bottom(function(c,d) {return d.yScale(c);})
                         .strokeStyle('#222')
-                        .width(10)
-                        .left(0)
                         .anchor('left').add(pv.Label)
                         .font('4pt')
                         .text(function(c,d) {return d.yScale.tickFormat(c);});
@@ -345,9 +367,20 @@ vq.LinearBrowser.prototype._render = function() {
                         .fillStyle(fillStyle)
                         .strokeStyle(strokeStyle);
 
-                 if (dataObj.tracks[index].tooltipItems != undefined){
-                    item.event('mouseover',pv.Behavior.flextip({timeout: 200,include_footer : false, include_header : false,
-                                          data_config:dataObj.tracks[index].tooltipItems}));
+                 if (dataObj.tracks[index]._tooltipItems != undefined){
+                     item.event('mouseover',
+                         pv.Behavior.hovercard(
+                             {
+                                 include_header : false,
+                                 include_footer : true,
+                                 self_hover : true,
+                                 timeout : 50,
+                                 data_config :
+                                     dataObj.tracks[index]._tooltipItems,
+                                 tool_config : dataObj.tracks[index]._tooltipLinks
+                             }
+                         ));
+
                 }
                 if (dataObj.tracks[index].notifier != undefined){
                     item
@@ -373,9 +406,20 @@ vq.LinearBrowser.prototype._render = function() {
                         .fillStyle(fillStyle)
                         .strokeStyle(strokeStyle);
 
-                 if (dataObj.tracks[index].tooltipItems != undefined){
-                    item.event('mouseover',pv.Behavior.flextip({timeout: 200,include_footer : false, include_header : false,
-                                         on_mark : false, data_config:dataObj.tracks[index].tooltipItems}));
+                 if (dataObj.tracks[index]._tooltipItems != undefined){
+                     item.event('mouseover',
+                         pv.Behavior.hovercard(
+                             {
+                                 include_header : false,
+                                 include_footer : true,
+                                 self_hover : true,
+                                 timeout : 50,
+                                 data_config :
+                                     dataObj.tracks[index]._tooltipItems,
+                                 tool_config : dataObj.tracks[index]._tooltipLinks
+                             }
+                         ));
+
                 }
                 if (dataObj.tracks[index].notifier != undefined){
                     item
@@ -568,9 +612,8 @@ vq.models.LinearBrowserData.prototype._build_data = function(data_struct) {
 
             this.tracks.forEach(function(b){
                 if (b.type == 'tile' || b.type == 'glyph') {
-                    var max_tile_level;
-                       max_tile_level = b.tile_show_all_tiles ?
-                               Math.floor((b.track_height - (b.radius * 2)) / (b.tile_height + b.tile_padding)) :
+                    var  max_tile_level = b.tile_show_all_tiles ?
+                               Math.floor((b.track_height - (b.radius * 4)) / (b.tile_height + b.tile_padding)) :
                                undefined;
                     b.data_array = (b.type =='tile' ? vq.utils.VisUtils.layoutChrTiles(b.data_array,b.tile_overlap_distance,max_tile_level) :
                             vq.utils.VisUtils.layoutChrTicks(b.data_array,b.tile_overlap_distance,max_tile_level));
@@ -603,16 +646,17 @@ vq.models.LinearBrowserData.TrackData.prototype._setDataModel = function() {
             {label : 'base_value', id: 'CONFIGURATION.base_value', cast: Number, defaultValue : 0 },
             {label : 'max_value', id: 'CONFIGURATION.max_value', cast: Number, defaultValue : null, optional : true },
             {label : 'min_value', id: 'CONFIGURATION.min_value', cast: Number, defaultValue : null, optional : true },
+            {label : 'num_y_rule_lines', id: 'CONFIGURATION.num_y_rule_lines', cast: Number, defaultValue : 3 },
             {label : 'shape', id: 'CONFIGURATION.shape', cast: String, defaultValue : 'circle' },
             {label : 'radius', id: 'CONFIGURATION.radius', cast: Number, defaultValue : 5 },
             {label : 'yaxis_scale_type', id: 'CONFIGURATION.yaxis_scale_type', cast: String, defaultValue : 'linear' },
             {label : 'notifier', id: 'CONFIGURATION.notifier', cast: Function, optional : true },
             {label : 'tile_padding', id: 'CONFIGURATION.tile_padding', cast: Number, defaultValue : 5 },
-            {label : 'tile_overlap_distance', id: 'CONFIGURATION.tile_overlap_distance', cast: Number, defaultValue : 0. },
+            {label : 'tile_overlap_distance', id: 'CONFIGURATION.tile_overlap_distance', cast: Number, defaultValue : 0.1 },
             {label : 'tile_height', id: 'CONFIGURATION.tile_height', cast: Number, defaultValue : 5 },
             {label : 'tile_show_all_tiles', id: 'CONFIGURATION.tile_show_all_tiles', cast: Boolean, defaultValue : false },
-            {label : 'tooltipItems', id: 'CONFIGURATION.tooltip_items', defaultValue :
-            {Start : 'start' , End : 'end', Value : 'value'} },
+           {label : '_tooltipItems', id: 'OPTIONS.tooltip_items',  defaultValue :{Start : 'start' , End : 'end', Value : 'value'} },
+         {label : '_tooltipLinks', id: 'OPTIONS.tooltip_links',  defaultValue : {} },
             {label : 'data_array', id: 'data_array', defaultValue : [] }
     ];
 };
