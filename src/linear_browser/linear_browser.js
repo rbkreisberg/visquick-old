@@ -115,20 +115,23 @@ vq.LinearBrowser.prototype._render = function() {
                 .fillStyle(null)
                 .canvas(that.container());
 
-
         var drawPanel = vis.add(pv.Panel)
                 .width(that.visibleWidth);
 
-        this.drawPanel = drawPanel;
-
+  	this.drawPanel = drawPanel;
+        
         var focus = drawPanel.add(pv.Panel)
                 .top(0)
                 .height(that.focus_height);
+                
+        var bg_plot = focus.add(pv.Panel)
+                .bottom(0);  
+        
         var focus_click_panel = focus.add(pv.Panel);
-
+                
         var plot = focus.add(pv.Panel)
                 .bottom(0);
-
+                        
             focus.add(pv.Rule)
                 .left(0)
               .add(pv.Rule)
@@ -137,9 +140,16 @@ vq.LinearBrowser.prototype._render = function() {
                 .strokeStyle("#888")
               .anchor("bottom").add(pv.Label)
                 .text(that.posX.tickFormat);
-        var tracks_panel = plot.add(pv.Panel)
+            
+        var bg_panel = bg_plot.add(pv.Panel)
                 .left(0)
                 .width(that.visibleWidth);
+                        
+        var tracks_panel = plot.add(pv.Panel)
+                .left(0)
+                .fillStyle(null)
+                .strokeStyle(null)
+	        .width(that.visibleWidth);
         var track_height;
 
     for(var index = 0; index < dataObj.tracks.length; index++) {
@@ -148,9 +158,11 @@ vq.LinearBrowser.prototype._render = function() {
                 strokeStyle = dataObj.tracks[index].strokeStyle,
                 lineWidth  = dataObj.tracks[index].lineWidth;
         track_height = dataObj.tracks[index].track_height;
-        var track_index = tracks_panel.add(pv.Panel)
+
+    var bg_index = bg_panel.add(pv.Panel)
                 .data([index]);
-        var track = track_index.add(pv.Panel)
+
+        var bg_track = bg_index.add(pv.Panel)
                 .data(function(c) { return [dataObj.tracks[c]];})
                 .bottom(function(c,index){
             return pv.sum(  dataObj.tracks.slice(0,index),function(d) {
@@ -159,14 +171,23 @@ vq.LinearBrowser.prototype._render = function() {
                         .strokeStyle(function(c) { return c.trackStrokeStyle();})
                         .lineWidth(function(c) { return c.trackLineWidth();})
                 .height(function(c) { return c.track_height+c.track_padding;});
+                
+        var track_index = tracks_panel.add(pv.Panel)
+                .data([index]);
+        var track = track_index.add(pv.Panel)
+                .data(function(c) { return [dataObj.tracks[c]];})
+                .bottom(function(c,index){
+            return pv.sum(  dataObj.tracks.slice(0,index),function(d) {
+                return d.track_height+d.track_padding; })})
+                .height(function(c) { return c.track_height+c.track_padding;});
 
         var yScale, min_val,max_val,plot_track,item,shape,radius;
 	var num_y_rule_lines = dataObj.tracks[index].num_y_rule_lines;
 
-
                 plot_track = track.add(pv.Panel)
                         .height(track_height)
-                        .bottom(2)
+			.bottom(2)
+                        .events('painted')
 			.overflow('hidden');
 			
 
@@ -200,7 +221,6 @@ vq.LinearBrowser.prototype._render = function() {
                         .bottom(function(c,d){ return d.yScale(c.value);})
                         .fillStyle(fillStyle)
                         .shape(shape)
-                    .events('painted')
                         .radius(radius)
                         .strokeStyle(strokeStyle);
 
@@ -259,7 +279,6 @@ vq.LinearBrowser.prototype._render = function() {
                         .lineWidth(lineWidth)
                         .bottom(function(c,d){ return d.yScale(c.value);})
                         .fillStyle(fillStyle)
-                        .events('painted')
                         .strokeStyle(strokeStyle);
                 item.event('mouseover',
                     pv.Behavior.hovercard(
@@ -317,7 +336,6 @@ vq.LinearBrowser.prototype._render = function() {
                         .bottom(function(c,d){ return d.yScale(Math.min(d.base_value,c.value));})
                         .height(function(c,d) { return d.yScale(Math.max(d.base_value,c.value)) - this.bottom();})
                         .fillStyle(fillStyle)
-                        .events('painted')
                         .strokeStyle(strokeStyle);
                 item.event('mouseover',
                     pv.Behavior.hovercard(
@@ -356,7 +374,6 @@ vq.LinearBrowser.prototype._render = function() {
                         .bottom(function(c,d) { return c.level*(d.tile_height + d.tile_padding) + (radius*2);})
                         .shape(shape)
                         .radius(radius)
-                        .events('painted')
                         .fillStyle(fillStyle)
                         .strokeStyle(strokeStyle);
 
@@ -391,7 +408,6 @@ vq.LinearBrowser.prototype._render = function() {
                         .bottom(function(c,d) { return c.level*(d.tile_height + d.tile_padding);})
                         .height(function(c,d) { return d.tile_height;})
                         .lineWidth(1)
-                        .events('painted')
                         .fillStyle(fillStyle)
                         .strokeStyle(strokeStyle);
 
@@ -633,7 +649,7 @@ vq.models.LinearBrowserData.TrackData.prototype._setDataModel = function() {
             {label : 'fillStyle', id: 'CONFIGURATION.fill_style', cast: vq.utils.VisUtils.wrapProperty, defaultValue : null },
             {label : 'strokeStyle', id: 'CONFIGURATION.stroke_style', cast: vq.utils.VisUtils.wrapProperty, defaultValue : null },
             {label : 'lineWidth', id: 'CONFIGURATION.line_width', cast: vq.utils.VisUtils.wrapProperty, defaultValue : vq.utils.VisUtils.wrapProperty(1) },
-            {label : 'trackFillStyle', id: 'CONFIGURATION.track_fill_style', cast: vq.utils.VisUtils.wrapProperty, defaultValue : null },
+            {label : 'trackFillStyle', id: 'CONFIGURATION.track_fill_style', cast: vq.utils.VisUtils.wrapProperty, defaultValue : function() { return pv.color('#FFFFFF');} },
             {label : 'trackStrokeStyle', id: 'CONFIGURATION.track_stroke_style', cast: vq.utils.VisUtils.wrapProperty, defaultValue : null },
             {label : 'trackLineWidth', id: 'CONFIGURATION.track_line_width', cast: vq.utils.VisUtils.wrapProperty, defaultValue : vq.utils.VisUtils.wrapProperty(1) },
             {label : 'track_height', id: 'CONFIGURATION.track_height', cast: Number, defaultValue : 80 },
