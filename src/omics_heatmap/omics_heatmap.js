@@ -242,7 +242,7 @@ vq.models.OmicsHeatmapData.prototype._setDataModel = function() {
               {label : 'item_width', id: 'item_width', cast: Number, defaultValue : 8 },
               {label : 'item_height', id: 'item_height', cast: Number, defaultValue : 8 },
               {label : 'item_row_padding', id: 'item_row_padding', cast: Number, defaultValue : 1 },
-              {label : 'cell_fillStyle', id:'fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(a) {return 'blue';} },
+              {label : 'cell_fillStyle', id:'fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : pv.Scale.linear(-1,1).range('blue','red') },
               {label : 'item_column_padding', id: 'item_column_padding', cast: Number, defaultValue : 2 },
               {label : 'row_labels' , id: 'row_labels', defaultValue : []},
               {label : 'column_labels' , id: 'column_labels', defaultValue : []},
