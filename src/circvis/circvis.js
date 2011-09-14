@@ -432,7 +432,12 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
     var glyph_distance = function(c,d) { return (((d._tile_height + d._tile_padding) * c.level)
         + innerRadius + (d._radius() * 2));};
     var checked_endAngle = function(c,d) {
-        if (this.parent.index+1 == dataObj._chrom.keys.length) { return dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2);}
+	if (dataObj._chrom.keys.length == 1) {
+		return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2));
+	}
+	else if (this.parent.index+1 == dataObj._chrom.keys.length) { 
+		return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2));
+	}	
         else {return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),
             dataObj.startAngle_map[dataObj._chrom.keys[(this.parent.index+1)%dataObj._chrom.keys.length]]);
         }
