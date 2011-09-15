@@ -789,14 +789,16 @@ vq.CircVis.prototype._add_network = function () {
 /** private **/
 vq.CircVis.prototype._add_legend = function() {
     var  dataObj = this.chromoData,
-            radius = dataObj._plot.legend_radius,
+            h = this.height(),
+	    w = this.width();
+		
+	var radius = dataObj._plot.legend_radius,
             diameter = radius * 2,
-            corner = dataObj._plot.legend_corner,
-            h = this.height();
+            corner = dataObj._plot.legend_corner;
 
     var legend = this.event_panel.add(pv.Panel)
             .width(diameter+20)
-            .height(diameter-10+(dataObj._wedge.length*10))
+            .height(diameter+(dataObj._wedge.length*10))
             .title('Legend');
     var rings = legend.add(pv.Panel)
                 .bottom(0)
@@ -819,15 +821,22 @@ vq.CircVis.prototype._add_legend = function() {
     }
 
     var legend_color = pv.Colors.category10(0,dataObj._wedge.length);
+    var legend_rings = radius - 10;
+    var ring_width = legend_rings / dataObj._wedge.length;
 
     var legend_outerRadius = function(i) {
-        return  radius - 10 - (i*10) ;
+        return  radius - (i*ring_width) ;
+    };
+    var legend_innerRadius = function(i) {
+        return  Math.min((legend_outerRadius(i) - ring_width + 2),legend_outerRadius(i) - 2);
     };
 
-    rings.add(pv.Dot)
-            .radius(legend_outerRadius)
+    rings.add(pv.Wedge)
+            .outerRadius(legend_outerRadius)
+            .innerRadius(legend_innerRadius)
             .title(function(c) { return dataObj._wedge[c]._legend_desc;})
             .lineWidth(8)
+	    .angle(Math.PI * 2)
             .strokeStyle(legend_color)
             .left(radius+10)
             .bottom(radius);
@@ -1008,7 +1017,7 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : '_plot.enable_zoom', id: 'PLOT.enable_zoom', cast: Boolean, defaultValue : false },
     {label : '_plot.show_legend', id: 'PLOT.show_legend', cast: Boolean, defaultValue : false },
     {label : '_plot.legend_corner', id: 'PLOT.legend_corner', cast: String, defaultValue : 'ne' },
-    {label : '_plot.legend_radius', id: 'PLOT.legend_radius', cast: Number, defaultValue : 100 },
+    {label : '_plot.legend_radius', id: 'PLOT.legend_radius', cast: Number, defaultValue : 25 },
     {label : '_network.data', id: 'NETWORK.DATA.data_array',  optional : true },
     //{label : '_network.radius', id: 'NETWORK.OPTIONS.network_radius', cast : Number, defaultValue : 100 },
     {label : '_network._outer_padding', id: 'NETWORK.OPTIONS.outer_padding',  optional : true },
