@@ -408,7 +408,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
             .lineWidth(1)
             .strokeStyle("#444");
 
-    if (dataObj._wedge[index]._plot_type != 'karyotype') {
+    if ((dataObj._wedge[index]._plot_type != 'karyotype') && (dataObj._wedge[index]._plot_type != 'tile') && (dataObj._wedge[index]._plot_type != 'glyph')) {
         if (isNaN(dataObj._wedge[index]._min_plotValue) || isNaN(dataObj._wedge[index]._max_plotValue)) {
             console.warn('Range of values for ring with index (' + index +') not detected.  Data has not been plotted.');
             return;
@@ -1090,7 +1090,7 @@ vq.models.CircVisData.prototype._setupData =  function() {
             .sortKeys(function(c,d) {return chrom_keys_order[c['chr_name']] - chrom_keys_order[d['chr_name']] > 0;})  //sort by given order
             .map();
 
-    normalizedLength = pv.dict(chrom_keys_array, function(d) { return chrom_length_map[d][0]['chr_length'] / totalChromLength;});
+    normalizedLength = pv.dict(chrom_keys_array, function(d) { return chrom_length_map[d.toUpperCase()][0]['chr_length'] / totalChromLength;});
 
     this.normalizedLength = normalizedLength;
 
