@@ -408,7 +408,10 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
             .lineWidth(1)
             .strokeStyle("#444");
 
-    if ((dataObj._wedge[index]._plot_type != 'karyotype') && (dataObj._wedge[index]._plot_type != 'tile') && (dataObj._wedge[index]._plot_type != 'glyph')) {
+    if ((dataObj._wedge[index]._plot_type != 'karyotype') &&
+        (dataObj._wedge[index]._plot_type != 'tile') &&
+        (dataObj._wedge[index]._plot_type != 'band') &&
+        (dataObj._wedge[index]._plot_type != 'glyph')) {
         if (isNaN(dataObj._wedge[index]._min_plotValue) || isNaN(dataObj._wedge[index]._max_plotValue)) {
             console.warn('Range of values for ring with index (' + index +') not detected.  Data has not been plotted.');
             return;
@@ -522,22 +525,6 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                     .event('mouseover',behavior);
             break;
         case 'glyph':
-//            if(dataObj._wedge[index]._draw_axes) {
-//                dot = this.event_panel.add(pv.Dot)
-//                        .data(y_axis.ticks(4))
-//                        .fillStyle(null)
-//                        .strokeStyle("#444")
-//                        .lineWidth(1)
-//                        .radius(function(i) { return y_axis(i); } );
-//                dot.anchor("top").add(pv.Label)
-//                        .textBaseline("middle")
-//                        .textAlign("right")
-//                        .text(function(i) {return y_axis.tickFormat(i);});
-//                dot.anchor("bottom").add(pv.Label)
-//                        .textBaseline("middle")
-//                        .textAlign("right")
-//                        .text(function(i) {return y_axis.tickFormat(i);});
-//            }
             panel_layer.add(pv.Dot)	//glyph
                     .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                     .left(function(c,d) { return width/2 + (glyph_distance(c,dataObj._wedge[index])) *  Math.cos(feature_angle(c)); })
@@ -550,23 +537,20 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                     .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
                     .event('mouseover',behavior);
             break;
+            case 'band':
+            panel_layer.add(pv.Wedge)	//tile
+                .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
+                .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
+                .endAngle(checked_endAngle)
+                .innerRadius(innerRadius )
+                .outerRadius(outerPlotRadius )
+                .strokeStyle(dataObj._wedge[index]._strokeStyle)
+                .fillStyle(dataObj._wedge[index]._fillStyle)
+                .cursor('pointer')
+                .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
+                .event('mouseover',behavior);
+            break;
         case 'tile':
-//            if(dataObj._wedge[index]._draw_axes) {
-//                dot = this.event_panel.add(pv.Dot)
-//                        .data(y_axis.ticks(4))
-//                        .fillStyle(null)
-//                        .strokeStyle("#444")
-//                        .lineWidth(1)
-//                        .radius(function(i) { return y_axis(i); } );
-//                dot.anchor("top").add(pv.Label)
-//                        .textBaseline("middle")
-//                        .textAlign("right")
-//                        .text(function(i) {return y_axis.tickFormat(i);});
-//                dot.anchor("bottom").add(pv.Label)
-//                        .textBaseline("middle")
-//                        .textAlign("right")
-//                        .text(function(i) {return y_axis.tickFormat(i);});
-//            }
             panel_layer.add(pv.Wedge)	//tile
                 .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                 .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
@@ -831,7 +815,8 @@ vq.CircVis.prototype._add_legend = function() {
         return  Math.min((legend_outerRadius(i) - ring_width + 2),legend_outerRadius(i) - 2);
     };
 
-    rings.add(pv.Wedge)
+   if(dataObj._plot.legend_show_rings) {
+       rings.add(pv.Wedge)
             .outerRadius(legend_outerRadius)
             .innerRadius(legend_innerRadius)
             .title(function(c) { return dataObj._wedge[c]._legend_desc;})
@@ -840,6 +825,7 @@ vq.CircVis.prototype._add_legend = function() {
             .strokeStyle(legend_color)
             .left(radius+10)
             .bottom(radius);
+   }
         rings.add(pv.Bar)
             .top(function(c) {return c*10;} )
             .height(10)
@@ -1018,6 +1004,7 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : '_plot.show_legend', id: 'PLOT.show_legend', cast: Boolean, defaultValue : false },
     {label : '_plot.legend_corner', id: 'PLOT.legend_corner', cast: String, defaultValue : 'ne' },
     {label : '_plot.legend_radius', id: 'PLOT.legend_radius', cast: Number, defaultValue : 25 },
+     {label : '_plot.legend_show_rings', id: 'PLOT.legend_show_rings', cast: Boolean, defaultValue : true },
     {label : '_network.data', id: 'NETWORK.DATA.data_array',  optional : true },
     //{label : '_network.radius', id: 'NETWORK.OPTIONS.network_radius', cast : Number, defaultValue : 100 },
     {label : '_network._outer_padding', id: 'NETWORK.OPTIONS.outer_padding',  optional : true },
