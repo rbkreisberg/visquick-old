@@ -805,7 +805,7 @@ vq.CircVis.prototype._add_legend = function() {
     }
 
     var legend_color = pv.Colors.category10(0,dataObj._wedge.length);
-    var legend_rings = radius - 10;
+    var legend_rings = radius - 5;
     var ring_width = legend_rings / dataObj._wedge.length;
 
     var legend_outerRadius = function(i) {
@@ -820,7 +820,7 @@ vq.CircVis.prototype._add_legend = function() {
             .outerRadius(legend_outerRadius)
             .innerRadius(legend_innerRadius)
             .title(function(c) { return dataObj._wedge[c]._legend_desc;})
-            .lineWidth(8)
+            .lineWidth(0)
 	    .angle(Math.PI * 2)
             .fillStyle(legend_color)
             .left(radius+10)
