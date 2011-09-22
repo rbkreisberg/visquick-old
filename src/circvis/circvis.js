@@ -892,7 +892,7 @@ vq.CircVis.prototype._render = function() {
             .data(dataObj._chrom.keys)
             .left(w/2)
             .top(h/2)
-            .innerRadius(outerRadius-dataObj._wedge[0]._outer_padding)
+            .innerRadius(outerRadius-(dataObj._wedge[0]._outer_padding || 0))
             .outerRadius(outerRadius)
             .angle(function(d) { return dataObj.normalizedLength[d] * 2 * Math.PI;} )
             .startAngle(function(d) { return dataObj.startAngle_map[d]; } )
