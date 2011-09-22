@@ -806,13 +806,14 @@ vq.CircVis.prototype._add_legend = function() {
 
     var legend_color = pv.Colors.category10(0,dataObj._wedge.length);
     var legend_rings = radius - 5;
-    var ring_width = legend_rings / dataObj._wedge.length;
+    var ring_width = Math.min(legend_rings / dataObj._wedge.length, 5);
+   var ring_space = 2;
 
     var legend_outerRadius = function(i) {
-        return  radius - (i*ring_width) ;
+        return  radius - (i*(ring_width + ring_space)) ;
     };
     var legend_innerRadius = function(i) {
-        return  Math.min((legend_outerRadius(i) - ring_width + 2),legend_outerRadius(i) - 2);
+        return  Math.min((legend_outerRadius(i) - ring_width),legend_outerRadius(i) - 2);
     };
 
    if(dataObj._plot.legend_show_rings) {
@@ -823,6 +824,7 @@ vq.CircVis.prototype._add_legend = function() {
             .lineWidth(0)
 	    .angle(Math.PI * 2)
             .fillStyle(legend_color)
+            .strokeStyle(legend_color)
             .left(radius+10)
             .bottom(radius);
    }
@@ -888,11 +890,16 @@ vq.CircVis.prototype._render = function() {
         }
     }
 
+var wedge_width = 0;
+if (dataObj._wedge === undefined && dataObj._wedge.length > 0) {
+       wedge_width = dataObj._wedge[0]._outer_padding;
+}
+
     var label_wedge = this.event_panel.add(pv.Wedge)
             .data(dataObj._chrom.keys)
             .left(w/2)
             .top(h/2)
-            .innerRadius(outerRadius-(dataObj._wedge[0]._outer_padding || 0))
+            .innerRadius(outerRadius-wedge_width)
             .outerRadius(outerRadius)
             .angle(function(d) { return dataObj.normalizedLength[d] * 2 * Math.PI;} )
             .startAngle(function(d) { return dataObj.startAngle_map[d]; } )
