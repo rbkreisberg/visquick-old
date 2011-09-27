@@ -85,7 +85,12 @@ vq.par_coord.js: \
 	@rm -f $@
 	$(JS_COMPILER) < $< > $@
 
-vq.js vq%.js: Makefile
+vq.js: Makefile
+	@rm -f $@
+	cat $(filter %.js,$^) > $@
+	@chmod a+w $@
+
+vq%.js: Makefile
 	@rm -f $@
 	cat $(filter %.js,$^) > $@
 	@chmod a+w $@
