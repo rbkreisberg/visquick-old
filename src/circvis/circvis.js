@@ -447,6 +447,8 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
     };
     var feature_angle = function(d) { return dataObj.startAngle_map[d.chr] + dataObj.theta[d.chr](d.start); };
 
+    var value_key = dataObj.wedge[index]._value_key;
+
     var behavior = function(d) {
         return (pv.Behavior.hovercard(
             {
@@ -487,8 +489,8 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                 .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                 .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);	})
                 .endAngle(checked_endAngle)
-                .innerRadius(function(c) { return thresholded_innerRadius(c.value);} )
-                .outerRadius(function(c) { return thresholded_outerRadius(c.value); } )
+                .innerRadius(function(c) { return thresholded_innerRadius(c[value_key]);} )
+                .outerRadius(function(c) { return thresholded_outerRadius(c[value_key]); } )
                 .strokeStyle(dataObj._wedge[index]._strokeStyle)
                 .fillStyle(dataObj._wedge[index]._fillStyle)
                 .cursor('pointer')
@@ -514,8 +516,8 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
             }
             panel_layer.add(pv.Dot)	//scatterplot
                     .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
-                    .left(function(c,d) { return width/2 + (thresholded_value_to_radius(c.value) * Math.cos(feature_angle(c))); })
-                    .bottom(function(c,d) { return height/2 + (-1 * (thresholded_value_to_radius(c.value)) * Math.sin(feature_angle(c))); })
+                    .left(function(c,d) { return width/2 + (thresholded_value_to_radius(c[value_key]) * Math.cos(feature_angle(c))); })
+                    .bottom(function(c,d) { return height/2 + (-1 * (thresholded_value_to_radius(c[value_key])) * Math.sin(feature_angle(c))); })
                     .shape(dataObj._wedge[index]._shape)
                     .radius(dataObj._wedge[index]._radius)
                     .strokeStyle(dataObj._wedge[index]._strokeStyle)
@@ -588,7 +590,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                 .endAngle(checked_endAngle)
                 .innerRadius(innerRadius )
                 .outerRadius(outerPlotRadius )
-                .fillStyle( function(d) {return d.value;})
+                .fillStyle( function(d) {return d[value_key];})
                 .cursor('pointer')
                 .event('click',function(c,d){ dataObj._wedge[index].listener(c);} )
                 .event('mouseover',behavior);
@@ -1142,7 +1144,7 @@ vq.models.CircVisData.prototype._setupData =  function() {
             wedge._chr_map = pv.dict(that._chrom.keys, function(d)
             { return cnv_map[d] === undefined ? [] : cnv_map[d];  });
 
-            var value_label = wedge._value_label;
+            var value_label = wedge._value_key;
             deviation = pv.deviation(wedge._data, function(d) { return d[value_label];});
             median = pv.median(wedge._data, function(d) { return d[value_label];});
 
@@ -1261,6 +1263,8 @@ vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
  this._dataModel = [
      {label : '_data', id: 'DATA.data_array', defaultValue : [ {"chr": "1", "end": 12784268, "start": 644269,
          "value": -0.058664}]},
+     {label : '_value_key', id: 'DATA.value_key', defaultValue : 'value',cast: String },
+
      {label : 'listener', id: 'OPTIONS.listener', defaultValue :  function(a,b) {} },
      {label : '_plot_type', id: 'PLOT.type', defaultValue : 'histogram' },
      {label : '_plot_height', id: 'PLOT.height', cast: Number, defaultValue : 100 },
@@ -1271,7 +1275,6 @@ vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
      {label : '_outer_padding', id: 'OPTIONS.outer_padding', cast : Number, defaultValue : 1 },
      {label : '_min_plotValue', id: 'OPTIONS.min_value',  cast : Number , optional : true },
      {label : '_max_plotValue', id: 'OPTIONS.max_value',  cast : Number , optional : true },
-     {label : '_value_label', id: 'OPTIONS.value_label', cast: String, defaultValue : 'value' },
      {label : '_base_plotValue', id: 'OPTIONS.base_value', cast: Number, optional : true },
      {label : '_legend_label', id: 'OPTIONS.legend_label', cast: String, defaultValue : '' },
      {label : '_legend_desc', id: 'OPTIONS.legend_description', cast: String, defaultValue : '' },
