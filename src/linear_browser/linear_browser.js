@@ -189,6 +189,8 @@ vq.LinearBrowser.prototype._render = function() {
 			.bottom(2)
                         .events('painted')
 			.overflow('hidden');
+
+        var value_key = dataObj.tracks[index].value_key;
 			
 
         switch (dataObj.tracks[index].type){
@@ -198,9 +200,9 @@ vq.LinearBrowser.prototype._render = function() {
                  shape = dataObj.tracks[index].shape;
                 radius = dataObj.tracks[index].radius;
                 min_val = dataObj.tracks[index].min_value != undefined ? dataObj.tracks[index].min_value :
-                        pv.min(dataObj.tracks[index].data_array,function(a) { return a.value;});
+                        pv.min(dataObj.tracks[index].data_array,function(a) { return a[value_key];});
                 max_val  = dataObj.tracks[index].max_value != undefined ? dataObj.tracks[index].max_value :
-                        pv.max(dataObj.tracks[index].data_array,function(a) { return a.value;});
+                        pv.max(dataObj.tracks[index].data_array,function(a) { return a[value_key];});
                 yScale = pv.Scale.linear(min_val,max_val ).range(0,track_height);
                 if (dataObj.tracks[index].yaxis_scale_type != undefined && dataObj.tracks[index].yaxis_scale_type != null &&
                         dataObj.tracks[index].yaxis_scale_type == 'log') {
@@ -218,7 +220,7 @@ vq.LinearBrowser.prototype._render = function() {
                         .data(function(d,obj,index){ return init(index);})
                         .left(function(c) { return that.posX(c.start);})
                         .lineWidth(lineWidth)
-                        .bottom(function(c,d){ return d.yScale(c.value);})
+                        .bottom(function(c,d){ return d.yScale(c[value_key]);})
                         .fillStyle(fillStyle)
                         .shape(shape)
                         .radius(radius)
@@ -256,10 +258,10 @@ vq.LinearBrowser.prototype._render = function() {
             case  'line' :
 
                 min_val = dataObj.tracks[index].min_value != undefined ? dataObj.tracks[index].min_value :
-                        pv.min(dataObj.tracks[index].data_array,function(a) { return a.value;});
+                        pv.min(dataObj.tracks[index].data_array,function(a) { return a[value_key];});
 
                 max_val  = dataObj.tracks[index].max_value != undefined ? dataObj.tracks[index].max_value :
-                        pv.max(dataObj.tracks[index].data_array,function(a) { return a.value;});
+                        pv.max(dataObj.tracks[index].data_array,function(a) { return a[value_key];});
                 yScale = pv.Scale.linear(min_val,max_val ).range(0,track_height);
                 if (dataObj.tracks[index].yaxis_scale_type != undefined && dataObj.tracks[index].yaxis_scale_type != null &&
                         dataObj.tracks[index].yaxis_scale_type == 'log') {
@@ -277,7 +279,7 @@ vq.LinearBrowser.prototype._render = function() {
                         .data(function(d,obj,index){ return init(index);})
                         .left(function(c) { return that.posX(c.start);})
                         .lineWidth(lineWidth)
-                        .bottom(function(c,d){ return d.yScale(c.value);})
+                        .bottom(function(c,d){ return d.yScale(c[value_key]);})
                         .fillStyle(fillStyle)
                         .strokeStyle(strokeStyle);
                 item.event('mouseover',
@@ -312,10 +314,10 @@ vq.LinearBrowser.prototype._render = function() {
             case 'bar':
 
                 min_val = dataObj.tracks[index].min_value != undefined ? dataObj.tracks[index].min_value :
-                        pv.min(dataObj.tracks[index].data_array,function(a) { return a.value;});
+                        pv.min(dataObj.tracks[index].data_array,function(a) { return a[value_key];});
 
                 max_val  = dataObj.tracks[index].max_value != undefined ? dataObj.tracks[index].max_value :
-                        pv.max(dataObj.tracks[index].data_array,function(a) { return a.value;});
+                        pv.max(dataObj.tracks[index].data_array,function(a) { return a[value_key];});
                 yScale = pv.Scale.linear(min_val,max_val ).range(0,track_height);
                 if (dataObj.tracks[index].yaxis_scale_type != undefined && dataObj.tracks[index].yaxis_scale_type != null &&
                         dataObj.tracks[index].yaxis_scale_type == 'log') {
@@ -333,8 +335,8 @@ vq.LinearBrowser.prototype._render = function() {
                         .left(function(c) { return that.posX(c.start);})
                         .lineWidth(lineWidth)
                         .width(function(c) { return that.posX(c.end)-that.posX(c.start);})
-                        .bottom(function(c,d){ return d.yScale(Math.min(d.base_value,c.value));})
-                        .height(function(c,d) { return d.yScale(Math.max(d.base_value,c.value)) - this.bottom();})
+                        .bottom(function(c,d){ return d.yScale(Math.min(d.base_value,c[value_key]));})
+                        .height(function(c,d) { return d.yScale(Math.max(d.base_value,c[value_key])) - this.bottom();})
                         .fillStyle(fillStyle)
                         .strokeStyle(strokeStyle);
                 item.event('mouseover',
@@ -477,7 +479,7 @@ vq.LinearBrowser.prototype._render = function() {
                      context_track.add(pv.Dot)
                             .data(function(d){ return d.data_array;})
                             .left(function(c) { return x(c.start);})
-                            .bottom(function(c,d){ return d.yScale(c.value)* context_scale;})
+                            .bottom(function(c,d){ return d.yScale(c[value_key])* context_scale;})
                             .radius(1)
                             .shape('circle')
                             .fillStyle(function() { return "#00c";} )
@@ -487,7 +489,7 @@ vq.LinearBrowser.prototype._render = function() {
                      context_track.add(pv.Line)
                             .data(function(d){ return d.data_array;})
                             .left(function(c) { return x(c.start);})
-                            .bottom(function(c,d){ return d.yScale(c.value)* context_scale;})
+                            .bottom(function(c,d){ return d.yScale(c[value_key])* context_scale;})
                             .fillStyle(function() { return null;} )
                             .lineWidth(.5)
                             .strokeStyle(function() { return "#009";} );
@@ -497,8 +499,8 @@ vq.LinearBrowser.prototype._render = function() {
                             .data(function(d){ return d.data_array;})
                             .left(function(c) { return x(c.start);})
                             .width(function(c) { return x(c.end-c.start);})
-                            .bottom(function(c,d){ return d.yScale(Math.min(d.base_value,c.value))* context_scale;})
-                            .height(function(c,d) { return (d.yScale(Math.max(d.base_value,c.value))* context_scale - this.bottom());})
+                            .bottom(function(c,d){ return d.yScale(Math.min(d.base_value,c[value_key]))* context_scale;})
+                            .height(function(c,d) { return (d.yScale(Math.max(d.base_value,c[value_key]))* context_scale - this.bottom());})
                             .lineWidth(1)
                             .fillStyle(function() { return "#00c";} )
                             .strokeStyle(function() { return "#009";} );
@@ -668,7 +670,8 @@ vq.models.LinearBrowserData.TrackData.prototype._setDataModel = function() {
             {label : 'tile_show_all_tiles', id: 'CONFIGURATION.tile_show_all_tiles', cast: Boolean, defaultValue : false },
            {label : '_tooltipItems', id: 'OPTIONS.tooltip_items',  defaultValue :{Start : 'start' , End : 'end', Value : 'value'} },
          {label : '_tooltipLinks', id: 'OPTIONS.tooltip_links',  defaultValue : {} },
-            {label : 'data_array', id: 'data_array', defaultValue : [] }
+            {label : 'data_array', id: 'data_array', defaultValue : [] },
+        {label : 'value_key', id: 'value_key', defaultValue : 'value' }
     ];
 };
 
