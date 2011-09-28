@@ -447,7 +447,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
     };
     var feature_angle = function(d) { return dataObj.startAngle_map[d.chr] + dataObj.theta[d.chr](d.start); };
 
-    var value_key = dataObj.wedge[index]._value_key;
+    var value_key = dataObj._wedge[index]._value_key;
 
     var behavior = function(d) {
         return (pv.Behavior.hovercard(
