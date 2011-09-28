@@ -232,7 +232,8 @@ vq.utils.VisUtils.layoutChrTiles = function(tiles,overlap, max_level, treat_as_p
         index= 0,
         props = pv.keys(tile);
         do {
-             match = props.every(function(prop) { return tile[prop] == new_tiles[index][prop];}) ? 1 : 0;
+             match = props.every(function(prop) { return ((tile[prop] == new_tiles[index][prop]) ||
+                        (isNaN(tile[prop] && isNaN(new_tiles[index][prop])))) ? 1 : 0;});
             index++;
         }
       while (index < new_tiles.length && match != 1);
