@@ -120,8 +120,8 @@ vq.Hovercard.prototype.placeInDocument = function(){
     offset.width = target.offsetWidth;
     card.style.display='block';
     card.style.visibility='hidden';
-    card.style.top = 0;
-    card.style.left = 0;
+    card.style.top = 0 +'px';
+    card.style.left = 0 + 'px';
     document.body.appendChild(card);
      card.style.top = offset.top + offset.height + (20 * this.transform.invert().k ) + 'px';
      card.style.left = offset.left + offset.width + (20 * this.transform.invert().k  ) + 'px';
@@ -186,8 +186,8 @@ vq.Hovercard.prototype.attachMoveListener = function() {
         var ev = !evt?window.event:evt;
         var x = ev.clientX ? ev.clientX : ev.pageX;
         var y = ev.clientY ? ev.clientY : ev.pageY;
-        that.hovercard.style.left = offset.left + (x - pos.left);
-        that.hovercard.style.top = offset.top +  (y - pos.top);
+        that.hovercard.style.left = offset.left + (x - pos.left) + 'px';
+        that.hovercard.style.top = offset.top +  (y - pos.top) + 'px';
     }
     //track mouse button for begin/end of drag
     this.move_div.addEventListener('mousedown',activateDrag,false);
