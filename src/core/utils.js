@@ -387,6 +387,36 @@ vq.utils.VisUtils.enableSelect = function(el){
     }
 };
 
+vq.utils.VisUtils.insertGCFCode = function() {
+
+    document.write(' \
+<!--[if lt IE 9]> \
+    <script type="text/javascript" \
+     src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script> \
+    <style> \
+     .chromeFrameInstallDefaultStyle { \
+       width: 100%;  \
+       border: 5px solid blue; \
+     } \
+    </style> \
+            <div id="notice"></div> \
+            <div id="prompt"></div> \
+    <script> \
+          function displayGCFText() { \
+            document.getElementById("notice").innerHTML = "Internet Explorer has been detected." + \
+            "Please install the Google Chrome Frame if it is not already installed.  This will enable" + \
+            "HTML5 features necessary for the web application.<p>"+ \
+            "If the install panel does not appear, please enable Compatibility mode in your browser and reload this page."; \
+            }; \
+     window.attachEvent("onload", function() { \
+       CFInstall.check({ \
+         mode: "inline",  \
+         node: "prompt" \
+       }); \
+     }); \
+    </script> \
+  <![endif]-->');
+};
 
 /**
  * @class Provides a set of static functions for use in converting
