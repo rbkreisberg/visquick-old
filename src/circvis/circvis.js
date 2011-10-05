@@ -1122,7 +1122,7 @@ vq.models.CircVisData.prototype._setupData =  function() {
         }
     });
 
-    var rotation = Math.PI / (dataObj._plot.rotate_degrees / 2);
+    var rotation = (this._plot.rotate_degrees) * Math.PI /180;
 
     startAngle_map = pv.dict(chrom_keys_array,(function(d) {return startAngle[d] - (Math.PI / 2) + rotation; } ));
     this.startAngle_map = startAngle_map;
