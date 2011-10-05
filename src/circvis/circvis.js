@@ -1014,6 +1014,7 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : '_plot.legend_corner', id: 'PLOT.legend_corner', cast: String, defaultValue : 'ne' },
     {label : '_plot.legend_radius', id: 'PLOT.legend_radius', cast: Number, defaultValue : 25 },
      {label : '_plot.legend_show_rings', id: 'PLOT.legend_show_rings', cast: Boolean, defaultValue : true },
+	{label : '_plot.rotate_degrees', id: 'PLOT.rotate_degrees', cast: Number, defaultValue : 0 },
     {label : '_network.data', id: 'NETWORK.DATA.data_array',  optional : true },
     //{label : '_network.radius', id: 'NETWORK.OPTIONS.network_radius', cast : Number, defaultValue : 100 },
     {label : '_network._outer_padding', id: 'NETWORK.OPTIONS.outer_padding',  optional : true },
@@ -1121,7 +1122,9 @@ vq.models.CircVisData.prototype._setupData =  function() {
         }
     });
 
-    startAngle_map = pv.dict(chrom_keys_array,(function(d) {return startAngle[d] - (Math.PI / 2); } ));
+    var rotation = Math.PI / (dataObj._plot.rotate_degrees / 2);
+
+    startAngle_map = pv.dict(chrom_keys_array,(function(d) {return startAngle[d] - (Math.PI / 2) + rotation; } ));
     this.startAngle_map = startAngle_map;
     this.theta = theta;
 
