@@ -292,14 +292,16 @@ vq.CircVis.prototype._add_ticks = function(outerRadius) {
     var dataObj = this.chromoData;
     var outerTickRadius = outerRadius - dataObj.ticks.outer_padding;
     var innerRadius = outerTickRadius - dataObj.ticks.height;
-    var inner = function(feature) { return innerRadius + (feature.level * 14) ;};
-    var outer = function(feature) { return inner(feature) + 10;};
-
+    var inner = dataObj.ticks.tile_ticks ?  function(feature) { return innerRadius + (feature.level * (dataObj.ticks.wedge_height * 1.3)) ;} :
+                function(feature) { return innerRadius;};
+    var outer = function(feature) { return inner(feature) + dataObj.ticks.wedge_height;};
     var feature_angle_map = function(c,d) {return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);  };
     var tick_fill = function(c) { return pv.color(dataObj.ticks.fill_style(c));};
     var tick_stroke = function(c) { return pv.color(dataObj.ticks.stroke_style(c));};
     var isNodeActive = function(c) { return ( c.active ||
             (dataObj.tick_panel.activeTickList().filter(function(d) { return d == c.value;}).length > 0));};
+
+var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
 
     dataObj.tick_panel = this.event_panel.add(pv.Panel)
             .def('activeTickList',[])
@@ -324,8 +326,8 @@ vq.CircVis.prototype._add_ticks = function(outerRadius) {
     dataObj.tick_panel.add(pv.Wedge)
             .events("all")
             .data(function(d) { return dataObj.ticks.data_map[d];  } )
+	    .angle(function(c) { return isNodeActive(c) ? tick_width * 2 : tick_width; })
             .startAngle(function(c,d) { return feature_angle_map(c,d);})
-            .angle(function(c) { return isNodeActive(c) ? Math.PI / 180 : Math.PI / 360; })
             .innerRadius(inner)
             .outerRadius(outer)
             .event("mouseout", function(c) { c.active = 0; this.render(); this.parent.children[1].render(); })
@@ -1044,10 +1046,13 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : 'ticks.label_map', id: 'TICKS.OPTIONS.label_map', defaultValue:[{key:'',label:''}]},
     {label : 'ticks._data_array', id: 'TICKS.DATA.data_array',  optional : true },
     {label : 'ticks.height', id: 'TICKS.OPTIONS.height', cast : Number, defaultValue: 60 },
+    {label : 'ticks.wedge_width', id: 'TICKS.OPTIONS.wedge_width', cast : Number, defaultValue: 0.5 },
+    {label : 'ticks.wedge_height', id: 'TICKS.OPTIONS.wedge_height', cast : Number, defaultValue: 10 },
     {label : 'ticks.outer_padding', id: 'TICKS.OPTIONS.outer_padding', cast : Number, defaultValue: 0 },
     {label : 'ticks.listener', id: 'TICKS.OPTIONS.listener', cast : Function, defaultValue : function() {return null;} },
     {label : 'ticks.display_legend', id: 'TICKS.OPTIONS.display_legend', cast : Boolean, defaultValue : true },
     {label : 'ticks.legend_corner', id: 'TICKS.OPTIONS.legend_corner', cast : String, defaultValue : 'nw' },
+     {label : 'ticks.tile_ticks', id: 'TICKS.OPTIONS.tile_ticks', cast : Boolean, defaultValue: true },
     {label : 'ticks.overlap_distance', id: 'TICKS.OPTIONS.overlap_distance', cast : Number, optional: true},
     {label : 'ticks.fill_style', id: 'TICKS.OPTIONS.fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return pv.color('red');}},
      {label : 'ticks.stroke_style', id: 'TICKS.OPTIONS.stroke_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() { return pv.color('white');}},
@@ -1214,21 +1219,19 @@ vq.models.CircVisData.prototype._setupData =  function() {
         this._network.nodes_array = this._network.tile_nodes ?  vq.utils.VisUtils.layoutChrTiles(node_array,that._network.node_overlap_distance) : node_array;
         this._network.links_array = links_array;
         this._network.data = 'loaded';
-
-
-
         nodes = [];
         node_array = [];
         links_array = [];
     }
-
 
     if (this.ticks != undefined && this.ticks._data_array != undefined && this.ticks._data_array != null) {
         if (that.ticks.overlap_distance === undefined) {
             var overlap_ratio =  7000000.0 / 3080419480;
              that.ticks.overlap_distance = overlap_ratio * totalChromLength;
         }
-        var tick_array = vq.utils.VisUtils.layoutChrTicks(that.ticks._data_array,that.ticks.overlap_distance);
+	var tick_array = that.ticks.tile_ticks ? vq.utils.VisUtils.layoutChrTicks(that.ticks._data_array,that.ticks.overlap_distance) :
+            that.ticks._data_array;
+        
         var ticks_map = pv.nest(tick_array)
                 .key(function(d) {return d.chr;})
                 .map();
