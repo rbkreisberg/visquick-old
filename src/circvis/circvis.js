@@ -314,7 +314,7 @@ var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
             include_header : false,
             include_footer : true,
             self_hover : true,
-            timeout : 50,
+            timeout : dataObj._plot.tooltip_timeout,
             data_config : dataObj.ticks.tooltipItems,
             tool_config : dataObj.ticks.tooltipLinks
         }
@@ -457,7 +457,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                 include_header : false,
                 include_footer : true,
                 self_hover : true,
-                timeout: 50,
+                timeout: dataObj._plot.tooltip_timeout,
                 data_config :
                     dataObj._wedge[index]._tooltipItems,
                 tool_config : dataObj._wedge[index]._tooltipLinks
@@ -615,7 +615,7 @@ vq.CircVis.prototype._add_network = function () {
            include_header : false,
            include_footer : false,
            self_hover : true,
-           timeout : 50,
+           timeout : dataObj._plot.tooltip_timeout,
            data_config :
            dataObj._network.node_tooltipItems,
            tool_config : dataObj._network.node_tooltipLinks
@@ -634,7 +634,7 @@ vq.CircVis.prototype._add_network = function () {
            include_footer : false,
            self_hover : true,
            param_data : true,
-           timeout : 50,
+           timeout : dataObj._plot.tooltip_timeout,
            data_config :
            dataObj._network.link_tooltipItems,
            tool_config :
@@ -1017,6 +1017,7 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : '_plot.legend_radius', id: 'PLOT.legend_radius', cast: Number, defaultValue : 25 },
      {label : '_plot.legend_show_rings', id: 'PLOT.legend_show_rings', cast: Boolean, defaultValue : true },
 	{label : '_plot.rotate_degrees', id: 'PLOT.rotate_degrees', cast: Number, defaultValue : 0 },
+     {label : '_plot.tooltip_timeout', id: 'PLOT.tooltip_timeout', cast: Number, defaultValue : 200 },
     {label : '_network.data', id: 'NETWORK.DATA.data_array',  optional : true },
     //{label : '_network.radius', id: 'NETWORK.OPTIONS.network_radius', cast : Number, defaultValue : 100 },
     {label : '_network._outer_padding', id: 'NETWORK.OPTIONS.outer_padding',  optional : true },

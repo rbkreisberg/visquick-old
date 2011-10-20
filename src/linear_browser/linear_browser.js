@@ -232,7 +232,7 @@ vq.LinearBrowser.prototype._render = function() {
                                 include_header : false,
                                 include_footer : true,
                                 self_hover : true,
-                                timeout : 50,
+                                timeout : dataObj._tooltip_timeout,
                                 data_config :
                                     dataObj.tracks[index]._tooltipItems,
                                 tool_config : dataObj.tracks[index]._tooltipLinks
@@ -288,7 +288,7 @@ vq.LinearBrowser.prototype._render = function() {
                             include_header : false,
                             include_footer : true,
                             self_hover : true,
-                            timeout : 50,
+                            timeout : dataObj._tooltip_timeout,
                             data_config :
                                 dataObj.tracks[index]._tooltipItems,
                             tool_config : dataObj.tracks[index]._tooltipLinks
@@ -345,7 +345,7 @@ vq.LinearBrowser.prototype._render = function() {
                             include_header : false,
                             include_footer : true,
                             self_hover : true,
-                            timeout : 50,
+                            timeout : dataObj._tooltip_timeout,
                             data_config :
                                 dataObj.tracks[index]._tooltipItems,
                             tool_config : dataObj.tracks[index]._tooltipLinks
@@ -386,7 +386,7 @@ vq.LinearBrowser.prototype._render = function() {
                                  include_header : false,
                                  include_footer : true,
                                  self_hover : true,
-                                 timeout : 50,
+                                 timeout : dataObj._tooltip_timeout,
                                  data_config :
                                      dataObj.tracks[index]._tooltipItems,
                                  tool_config : dataObj.tracks[index]._tooltipLinks
@@ -420,7 +420,7 @@ vq.LinearBrowser.prototype._render = function() {
                                  include_header : false,
                                  include_footer : true,
                                  self_hover : true,
-                                 timeout : 50,
+                                 timeout : dataObj._tooltip_timeout,
                                  data_config :
                                      dataObj.tracks[index]._tooltipItems,
                                  tool_config : dataObj.tracks[index]._tooltipLinks
@@ -670,6 +670,7 @@ vq.models.LinearBrowserData.TrackData.prototype._setDataModel = function() {
             {label : 'tile_show_all_tiles', id: 'CONFIGURATION.tile_show_all_tiles', cast: Boolean, defaultValue : false },
            {label : '_tooltipItems', id: 'OPTIONS.tooltip_items',  defaultValue :{Start : 'start' , End : 'end', Value : 'value'} },
          {label : '_tooltipLinks', id: 'OPTIONS.tooltip_links',  defaultValue : {} },
+        {label : '_tooltip_timeout', id: 'OPTIONS.tooltip_timeout',  defaultValue : 200 },
             {label : 'data_array', id: 'data_array', defaultValue : [] },
         {label : 'value_key', id: 'value_key', defaultValue : 'value' }
     ];

@@ -153,7 +153,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
                 return;
             }
             var quartiles = pv.Scale.quantile(category[y]).quantiles(4).quantiles();
-            //Freedman�Diaconis' choice for bin size
+            //Freedman-Diaconis' choice for bin size
             var setSize = 2 * (quartiles[3] - quartiles[1]) / Math.pow(sampleCount,0.33);
             category.dist = pv.range(minY- 3*setSize/2,maxY+ 3*setSize/2,setSize).map(function(subset) {
                         return {position : subset + setSize/2,
