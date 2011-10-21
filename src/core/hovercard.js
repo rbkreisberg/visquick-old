@@ -68,7 +68,10 @@ vq.Hovercard.prototype.show = function(anchorTarget,dataObject) {
 
     this.getContainer().className ="temp";
     this.start = function() {that.startOutTimer();};
-    this.cancel = function() {that.cancelOutTimer();};
+    this.cancel = function() {
+        this.target_mark.removeEventListener('mouseout',that.start,false);
+        that.cancelOutTimer();
+    };
     this.close = function() {that.destroy();};
     this.target_mark.addEventListener('mouseout',that.start, false);
     this.getContainer().addEventListener('mouseover',that.cancel, false);
@@ -167,6 +170,8 @@ vq.Hovercard.prototype.attachMoveListener = function() {
 
     function activateDrag(evt) {
          var ev = !evt?window.event:evt;
+        //don't listen for mouseout
+        that.getContainer().removeEventListener('mouseout',that.start,false);
         //begin tracking mouse movement!
         window.addEventListener('mousemove',trackMouse,false);
         offset = vq.utils.VisUtils.cumulativeOffset(that.hovercard);
@@ -180,6 +185,8 @@ vq.Hovercard.prototype.attachMoveListener = function() {
         window.removeEventListener('mousemove',trackMouse,false);
         //enable text selection after drag
         window.removeEventListener('selectstart',vq.utils.VisUtils.disabler,false);
+        //start listening again for mouseout
+         that.getContainer().addEventListener('mouseout',that.start,false);
         pos = {};
     }
     function trackMouse(evt) {
@@ -383,7 +390,6 @@ vq.Hovercard.prototype.renderFooter = function() {
  * @param opts {JSON Object} - Configuration object defined above.
  */
 
-
 pv.Behavior.hovercard = function(opts) {
 
     var hovercard, anchor_div,target,relative_div;
@@ -405,9 +411,18 @@ pv.Behavior.hovercard = function(opts) {
 
     return function(d) {
         var info = opts.param_data ? d : (this instanceof pv.Mark ? (this.data() ||  this.title()) : d);
+        var retry = opts.retry || false;
+        var that = this;
+        target = pv.event.target;
         var hovercard_arr = recoverHovercard();
-        // quit if there is already a temprorary hovercard on the window
-        if (hovercard_arr.length > 0) {return;}
+        //set a timeout to retry after timeout milliseconds has passed
+        // quit if there is already a temporary hovercard on the window and timeout has passed
+        if (hovercard_arr.length > 0 && !retry) {
+             opts.retry = true;
+             var outtimer_id = window.setTimeout(function(){pv.Behavior.hovercard(opts).call(that,d);});
+             var clear = function(){ window.clearTimeout(outtimer_id);};
+             target.addEventListener('mouseout',clear,false);
+        } else { target.removeEventListener('mouseout',clear,false); return;}
 
         var t= pv.Transform.identity, p = this.parent;
         do {
