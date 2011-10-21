@@ -398,6 +398,7 @@ pv.Behavior.hovercard = function(opts) {
 
     var hovercard, anchor_div,target,relative_div;
     var hovercard_div_id =  'vq_hover';
+    var outtimer_id, clear, retry_tooltip;
 
     //list all hovercards that are visible, yet have not been persisted/pinned to the screen.
     function recoverHovercard() {
@@ -432,10 +433,11 @@ pv.Behavior.hovercard = function(opts) {
         opts.include_footer = true;
         opts.target = target;
         var hovercard_arr = recoverHovercard();
-        that.clear = function(){
+        outtimer_id = null;
+        clear = function(){
             window.clearTimeout(outtimer_id);
         };
-        that.retry_tooltip = function(){
+        retry_tooltip = function(){
             pv.Behavior.hovercard(opts).call(that,info);
         };
         //set a timeout to retry after timeout milliseconds has passed
@@ -445,11 +447,12 @@ pv.Behavior.hovercard = function(opts) {
              opts.event = {x:this.parent.mouse().x,y:this.parent.mouse().y};
              opts.param_data = true;
              d=info;
-             target.addEventListener('mouseout',that.clear,false);
-             var outtimer_id = window.setTimeout(that.retry_tooltip,opts.timeout || 100);
+             target.addEventListener('mouseout',clear,false);
+             outtimer_id = window.setTimeout(retry_tooltip,opts.timeout || 100);
              return;
        	}// if there are still cards out and this is a retry, just give up
-        else if (hovercard_arr.length > 0 && retry) { opts.retry = false; target.removeEventListener('mouseout',that.clear,false); return;}
+        else if (hovercard_arr.length > 0 && retry) { opts.retry = false; target.removeEventListener('mouseout',clear,false); return;}
+        else if (retry) { clear(); target.removeEventListener('mouseout',clear,false);}
 
         opts.retry = false;
         var t= pv.Transform.identity, p = this.parent;
