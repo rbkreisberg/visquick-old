@@ -107,9 +107,9 @@ vq.Hovercard.prototype.togglePin = function() {
                 this.getContainer().addEventListener('mouseout',that.start,false);
                 this.getContainer().className ="temp";
             } else {
-                this.cancelOutTimer();
                 this.target_mark.removeEventListener('mouseout',that.start,false);
                 this.getContainer().removeEventListener('mouseout',that.start,false);
+                this.cancelOutTimer();
                 this.getContainer().className ="";
             }
     this.pin_div.innerHTML = this.lock_display ? vq.Hovercard.icon.pin_in : vq.Hovercard.icon.pin_out;
@@ -170,8 +170,10 @@ vq.Hovercard.prototype.attachMoveListener = function() {
 
     function activateDrag(evt) {
          var ev = !evt?window.event:evt;
-        //don't listen for mouseout
-        that.getContainer().removeEventListener('mouseout',that.start,false);
+        //don't listen for mouseout if its a temp card
+        if (that.getContainer().className=="temp") {
+                that.getContainer().removeEventListener('mouseout',that.start,false);
+        }
         //begin tracking mouse movement!
         window.addEventListener('mousemove',trackMouse,false);
         offset = vq.utils.VisUtils.cumulativeOffset(that.hovercard);
@@ -185,8 +187,10 @@ vq.Hovercard.prototype.attachMoveListener = function() {
         window.removeEventListener('mousemove',trackMouse,false);
         //enable text selection after drag
         window.removeEventListener('selectstart',vq.utils.VisUtils.disabler,false);
-        //start listening again for mouseout
-         that.getContainer().addEventListener('mouseout',that.start,false);
+        //start listening again for mouseout if its a temp card
+        if (that.getContainer().className=="temp") {
+            that.getContainer().addEventListener('mouseout',that.start,false);
+        }
         pos = {};
     }
     function trackMouse(evt) {
@@ -428,6 +432,12 @@ pv.Behavior.hovercard = function(opts) {
         opts.include_footer = true;
         opts.target = target;
         var hovercard_arr = recoverHovercard();
+        that.clear = function(){
+            window.clearTimeout(outtimer_id);
+        };
+        that.retry_tooltip = function(){
+            pv.Behavior.hovercard(opts).call(that,info);
+        };
         //set a timeout to retry after timeout milliseconds has passed
         // quit if there is already a temporary hovercard on the window and timeout has passed
         if (hovercard_arr.length > 0 && !retry) {
@@ -435,14 +445,13 @@ pv.Behavior.hovercard = function(opts) {
              opts.event = {x:this.parent.mouse().x,y:this.parent.mouse().y};
              opts.param_data = true;
              d=info;
-             var clear = function(){ window.clearTimeout(outtimer_id);};
-             var retry_tooltip = function(){pv.Behavior.hovercard(opts).call(that,d);};
-             target.addEventListener('mouseout',clear,false);
-             var outtimer_id = window.setTimeout(retry_tooltip,opts.timeout || 100);
+             target.addEventListener('mouseout',that.clear,false);
+             var outtimer_id = window.setTimeout(that.retry_tooltip,opts.timeout || 100);
              return;
        	}// if there are still cards out and this is a retry, just give up
-        else if (hovercard_arr.length > 0 && retry) { target.removeEventListener('mouseout',clear,false); return;}
- 
+        else if (hovercard_arr.length > 0 && retry) { opts.retry = false; target.removeEventListener('mouseout',that.clear,false); return;}
+
+        opts.retry = false;
         var t= pv.Transform.identity, p = this.parent;
         do {
             t=t.translate(p.left(),p.top()).times(p.transform());
