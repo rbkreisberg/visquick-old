@@ -108,6 +108,7 @@ vq.Hovercard.prototype.togglePin = function() {
                 this.getContainer().className ="temp";
             } else {
                 this.cancelOutTimer();
+                this.target_mark.removeEventListener('mouseout',that.start,false);
                 this.getContainer().removeEventListener('mouseout',that.start,false);
                 this.getContainer().className ="";
             }

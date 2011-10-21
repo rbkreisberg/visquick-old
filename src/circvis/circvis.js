@@ -298,10 +298,12 @@ vq.CircVis.prototype._add_ticks = function(outerRadius) {
     var feature_angle_map = function(c,d) {return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);  };
     var tick_fill = function(c) { return pv.color(dataObj.ticks.fill_style(c));};
     var tick_stroke = function(c) { return pv.color(dataObj.ticks.stroke_style(c));};
+    var tick_angle = function(tick) { var angle = tick_length / inner(tick); return  isNodeActive(tick) ? angle * 2 : angle; };
     var isNodeActive = function(c) { return ( c.active ||
             (dataObj.tick_panel.activeTickList().filter(function(d) { return d == c.value;}).length > 0));};
 
 var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
+    var tick_length = tick_width * innerRadius;
 
     dataObj.tick_panel = this.event_panel.add(pv.Panel)
             .def('activeTickList',[])
@@ -326,7 +328,7 @@ var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
     dataObj.tick_panel.add(pv.Wedge)
             .events("all")
             .data(function(d) { return dataObj.ticks.data_map[d];  } )
-	    .angle(function(c) { return isNodeActive(c) ? tick_width * 2 : tick_width; })
+	        .angle(tick_angle)
             .startAngle(function(c,d) { return feature_angle_map(c,d);})
             .innerRadius(inner)
             .outerRadius(outer)
@@ -334,9 +336,9 @@ var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
             .event('mouseover',behavior)
             .event("click", function(c) { dataObj.ticks.listener(c); })
             .cursor('pointer')
-            .strokeStyle(function(c) { return  tick_stroke(c).alpha(isNodeActive(c) ? 1.0 : 0.6);})
+            .strokeStyle(function(c) { return  tick_stroke(c);})
             .lineWidth(1)
-            .fillStyle(function(c) { return  tick_fill(c).alpha(isNodeActive(c) ? 1.0 : 0.6);})
+            .fillStyle(function(c) { return  tick_fill(c);})
             .anchor("inner").add(pv.Label)
             .text(function(c) { return isNodeActive(c) ? c.value : "";  })
             .font('14px helvetica');
