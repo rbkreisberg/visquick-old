@@ -69,7 +69,7 @@ vq.Hovercard.prototype.show = function(anchorTarget,dataObject) {
     this.getContainer().className ="temp";
     this.start = function() {that.startOutTimer();};
     this.cancel = function() {
-        this.target_mark.removeEventListener('mouseout',that.start,false);
+        that.target_mark.removeEventListener('mouseout',that.start,false);
         that.cancelOutTimer();
     };
     this.close = function() {that.destroy();};
@@ -109,7 +109,6 @@ vq.Hovercard.prototype.togglePin = function() {
             } else {
                 this.cancelOutTimer();
                 this.getContainer().removeEventListener('mouseout',that.start,false);
-                this.target_mark.removeEventListener('mouseout',that.start,false);
                 this.getContainer().className ="";
             }
     this.pin_div.innerHTML = this.lock_display ? vq.Hovercard.icon.pin_in : vq.Hovercard.icon.pin_out;
@@ -411,19 +410,38 @@ pv.Behavior.hovercard = function(opts) {
 
     return function(d) {
         var info = opts.param_data ? d : (this instanceof pv.Mark ? (this.data() ||  this.title()) : d);
+        var mouse_x, mouse_y;
         var retry = opts.retry || false;
         var that = this;
-        target = pv.event.target;
+        if (!retry) {
+            target = pv.event.target;
+            mouse_x = this.parent.mouse().x;
+            mouse_y = this.parent.mouse().y;
+        } else {
+            target =opts.target;
+            mouse_x = opts.event.x;
+            mouse_y = opts.event.y;
+        }
+        opts.self_hover = true;
+        opts.include_frame = true;
+        opts.include_footer = true;
+        opts.target = target;
         var hovercard_arr = recoverHovercard();
         //set a timeout to retry after timeout milliseconds has passed
         // quit if there is already a temporary hovercard on the window and timeout has passed
         if (hovercard_arr.length > 0 && !retry) {
              opts.retry = true;
-             var outtimer_id = window.setTimeout(function(){pv.Behavior.hovercard(opts).call(that,d);});
+             opts.event = {x:this.parent.mouse().x,y:this.parent.mouse().y};
+             opts.param_data = true;
+             d=info;
              var clear = function(){ window.clearTimeout(outtimer_id);};
+             var retry_tooltip = function(){pv.Behavior.hovercard(opts).call(that,d);};
              target.addEventListener('mouseout',clear,false);
-        } else { target.removeEventListener('mouseout',clear,false); return;}
-
+             var outtimer_id = window.setTimeout(retry_tooltip,opts.timeout || 100);
+             return;
+       	}// if there are still cards out and this is a retry, just give up
+        else if (hovercard_arr.length > 0 && retry) { target.removeEventListener('mouseout',clear,false); return;}
+ 
         var t= pv.Transform.identity, p = this.parent;
         do {
             t=t.translate(p.left(),p.top()).times(p.transform());
@@ -453,12 +471,6 @@ pv.Behavior.hovercard = function(opts) {
                 relative_div.appendChild(anchor_div);
             }
         }
-        target = pv.event.target;
-        opts.self_hover = true;
-        opts.include_frame = true;
-        opts.include_footer = true;
-        opts.target = target;
-
 
         if(this.properties.width) {
             anchor_div.style.width =  opts.on_mark ? Math.ceil(this.width() * t.k) + 1 : 1;
@@ -470,8 +482,8 @@ pv.Behavior.hovercard = function(opts) {
             t.y -= r;
             anchor_div.style.height = anchor_div.style.width = Math.ceil(2 * r * t.k);
         }
-        anchor_div.style.left = opts.on_mark ? Math.floor(this.left() * t.k + t.x) + "px" : Math.floor(this.parent.mouse().x  * t.k+ t.x)  + "px";
-        anchor_div.style.top = opts.on_mark ? Math.floor(this.top() * t.k + t.y) + "px" : Math.floor(this.parent.mouse().y * t.k + t.y) + "px";
+        anchor_div.style.left = opts.on_mark ? Math.floor(this.left() * t.k + t.x) + "px" : Math.floor(mouse_x  * t.k+ t.x)  + "px";
+        anchor_div.style.top = opts.on_mark ? Math.floor(this.top() * t.k + t.y) + "px" : Math.floor(mouse_y * t.k + t.y) + "px";
         opts.transform = t;
 
         hovercard = new vq.Hovercard(opts);
