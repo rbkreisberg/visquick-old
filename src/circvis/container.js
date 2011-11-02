@@ -21,25 +21,86 @@ var CircvisContainer = Ext.extend(Object, {
 
         this.assembledData.chrom_keys = data.chrom_keys;
 
-        Ext.Ajax.request({ url: data.main, method: "get", success: function(o) {
-            this.assembledData['network'] = Ext.util.JSON.decode(o.responseText);
+        Ext.Ajax.request({ url: data.feature_networks, method: "get", success: function(o) {
+            this.parseNetwork(Ext.util.JSON.decode(o.responseText));
             this.assemble();
-        }, scope: this })
+        }, scope: this });
+
+        Ext.Ajax.request({ url: data.cytoband, method: "get", success: function(o) {
+            this.assembledData["cytoband"] = Ext.util.JSON.decode(o.responseText);
+            this.assemble();
+        }, scope: this });
+        
+        Ext.Ajax.request({ url: data["chrom_info"], method: "get", success: function(o) {
+            this.assembledData["chrom_info"] = Ext.util.JSON.decode(o.responseText);
+            this.assemble();
+        }, scope: this });
+    },
+
+    parseNetwork: function(responses) {
+        var whole_net = responses.map(function(row) {
+                var node1 = row.alias1.split(':');
+                var node2 = row.alias2.split(':');
+                var label_mod1 = node1.length >= 8 ? node1[7] : '';
+                var label_mod2 = node2.length >= 8 ? node2[7] : '';
+                return {node1: {id : row.f1id, source : node1[1], label : node1[2], chr : node1[3].slice(3),
+                    label_mod : label_mod1,
+                    start: node1[4] != '' ? parseInt(node1[4]) : -1, end:node1[5] != '' ? parseInt(node1[5]) : parseInt(node1[4]),genescore:row.f1genescore},
+                    node2: {id : row.f2id, source : node2[1], label : node2[2], chr : node2[3].slice(3),
+                        label_mod : label_mod2,
+                        start: node2[4] != '' ? parseInt(node2[4]) : -1, end:node2[5] != '' ? parseInt(node2[5]) : parseInt(node2[4]),genescore:row.f2genescore},
+                    pvalue : row.pvalue,importance : row.importance, correlation:row.correlation};
+            }
+        );
+
+        var located_responses = whole_net.filter(function(feature) {
+            return feature.node1.chr != '' && feature.node2.chr != '';
+        });
+
+        var unlocated_responses = whole_net.filter(function(feature) {
+            return feature.node1.chr == '' || feature.node2.chr == '';
+        });
+
+        var feature_ids = {};
+        var features = [];
+        whole_net.forEach(function(link) {
+            if (feature_ids[link.node1.id] == null) {
+                feature_ids[link.node1.id] = 1;
+                features.push(vq.utils.VisUtils.extend({value:link.node1.label}, link.node1));
+            }
+            if (feature_ids[link.node2.id] == null) {
+                feature_ids[link.node2.id] = 1;
+                features.push(vq.utils.VisUtils.extend({value:link.node2.label}, link.node2));
+            }
+        });
+
+        this.assembledData['features'] = features;
+        this.assembledData['network'] = located_responses;
+        this.assembledData['unlocated'] = unlocated_responses;
+        this.assembledData['unlocated_features'] = vq.utils.VisUtils.clone(features).filter(function(feature) {
+            return feature.chr == '';
+        });
+        this.assembledData['located_features'] = vq.utils.VisUtils.clone(features).filter(function(feature) {
+            return feature.chr != '';
+        });
     },
 
     assemble: function() {
         if (this.assembledData["unlocated"] == null) {
             return;
         }
-
         if (this.assembledData["features"] == null) {
             return;
         }
-
         if (this.assembledData["cytoband"] == null) {
             return;
         }
-
+        if (this.assembledData["chrom_keys"] == null) {
+            return;
+        }
+        if (this.assembledData["chrom_info"] == null) {
+            return;
+        }
         if (this.assembledData["network"] == null) {
             return;
         }
@@ -47,7 +108,7 @@ var CircvisContainer = Ext.extend(Object, {
         var width = 800;
         var height = 800;
         var ring_radius = width / 20;
-        var stroke_style = getStrokeStyleAttribute();
+        var stroke_style = "white";
 
         var karyotype_tooltip_items = {
             'Karyotype Label' : function(feature) {
@@ -94,11 +155,20 @@ var CircvisContainer = Ext.extend(Object, {
                 return node;
             }));
 
+        var all_source_list = pv.blend([['GEXP','METH','CNVR','MIRN','GNAB'], ['CLIN','SAMP']]);
+        var all_source_map = pv.numerate(all_source_list);
+        var source_color_scale = pv.Colors.category10();
+        var link_sources_colors = function(link) { return "red" };
+
+        var node_colors = function(source) {
+            return source_color_scale(all_source_map[source]);
+        };
+
         var loadedData = {
             GENOME: {
                 DATA:{
-                    key_order : this.assembledData.chrom_keys,
-                    key_length : vq.utils.VisUtils.clone(chrome_length)
+                    key_order : this.assembledData["chrom_keys"],
+                    key_length : vq.utils.VisUtils.clone(this.assembledData["chrom_info"])
                 },
                 OPTIONS: {
                     radial_grid_line_width: 1,
@@ -127,10 +197,10 @@ var CircvisContainer = Ext.extend(Object, {
                 height :  height,
                 horizontal_padding : 30,
                 vertical_padding : 30,
-                container : div,
+                container : Ext.getDom(this.contentEl),
                 enable_pan : false,
                 enable_zoom : false,
-                show_legend: true,
+                show_legend: false,
                 legend_include_genome : true,
                 legend_corner : 'ne',
                 legend_radius  : width / 15
@@ -172,10 +242,8 @@ var CircvisContainer = Ext.extend(Object, {
                         fill_style  : function(feature) {
                             return link_sources_colors([feature.sourceNode.source,feature.targetNode.source]);
                         },
-                        //stroke_style  : function(feature) {return link_sources_colors([feature.sourceNode.source,feature.targetNode.source]); },
                         stroke_style : stroke_style,
-                        tooltip_items : unlocated_tooltip_items,
-                        listener : initiateDetailsPopup
+                        tooltip_items : unlocated_tooltip_items
                     }
                 }
             ],
@@ -192,7 +260,6 @@ var CircvisContainer = Ext.extend(Object, {
                     node_key : function(node) {
                         return node['label'];
                     },
-                    link_listener: initiateDetailsPopup,
                     link_stroke_style : function(link) {
                         return link_sources_colors([link.sourceNode.source,link.targetNode.source]);
                     },
