@@ -86,6 +86,7 @@
     *            legend_corner : {String} - Anchor point for legend. Either ('ne','nw','se','sw') Defaults to 'nw',
     *            outer_padding : {Number} - The distance between the tool boundary and the feature glyph ring.  Defaults to 0,
     *            overlap_distance : {Number} - Used in tiling of the feature glyphs.  The maximum distance (in base pairs) that constitutes overlapping features.  Defaults to 7000000.0
+    *            label_key : {String} - The property of the feature data which denotes the feature label.  eg. {label:'GENEA'} would require label_key: 'label'
     *            label_map : {Array} - A mapping of an example feature label to a string describing that feature type.  Each element is an object.
     *                     eg. [{key:'TP53', label:'Gene'}].  Default is no mapping.
     *            tooltip_items : {Tooltip Object} - JSON object that configures the tooltip display of a feature glyph. The mapping of each property is:
@@ -298,9 +299,11 @@ vq.CircVis.prototype._add_ticks = function(outerRadius) {
     var feature_angle_map = function(c,d) {return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);  };
     var tick_fill = function(c) { return pv.color(dataObj.ticks.fill_style(c));};
     var tick_stroke = function(c) { return pv.color(dataObj.ticks.stroke_style(c));};
+    var label_key = dataObj.ticks.label_key;
+
     var tick_angle = function(tick) { var angle = tick_length / inner(tick); return  isNodeActive(tick) ? angle * 2 : angle; };
     var isNodeActive = function(c) { return ( c.active ||
-            (dataObj.tick_panel.activeTickList().filter(function(d) { return d == c.value;}).length > 0));};
+            (dataObj.tick_panel.activeTickList().filter(function(d) { return d == c[label_key];}).length > 0));};
 
 var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
     var tick_length = tick_width * innerRadius;
@@ -340,7 +343,7 @@ var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
             .lineWidth(1)
             .fillStyle(function(c) { return  tick_fill(c);})
             .anchor("inner").add(pv.Label)
-            .text(function(c) { return isNodeActive(c) ? c.value : "";  })
+            .text(function(c) { return isNodeActive(c) ? c[label_key] : "";  })
             .font('14px helvetica');
 
     if (dataObj.ticks.display_legend){
@@ -1047,6 +1050,8 @@ vq.models.CircVisData.prototype.setDataModel = function() {
          {label : 'ticks.tooltipItems', id: 'TICKS.OPTIONS.tooltip_items', defaultValue :  { Chr : 'chr', Start : 'start', End : 'end', Label:'value'} },
      {label : 'ticks.tooltipLinks', id: 'TICKS.OPTIONS.tooltip_links',  defaultValue : {} },
     {label : 'ticks.label_map', id: 'TICKS.OPTIONS.label_map', defaultValue:[{key:'',label:''}]},
+
+    {label : 'ticks.label_key', id: 'TICKS.OPTIONS.label_key', defaultValue:'value',cast: String},
     {label : 'ticks._data_array', id: 'TICKS.DATA.data_array',  optional : true },
     {label : 'ticks.height', id: 'TICKS.OPTIONS.height', cast : Number, defaultValue: 60 },
     {label : 'ticks.wedge_width', id: 'TICKS.OPTIONS.wedge_width', cast : Number, defaultValue: 0.5 },
