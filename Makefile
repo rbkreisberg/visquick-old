@@ -1,6 +1,10 @@
 JS_COMPILER = \
 	./lib/uglifyjs/bin/uglifyjs
 
+JSDOCDIR = \
+		 /local/tools/jsdoc-toolkit
+export JSDOCDIR
+
 JSDOCTEMPLATEDIR = \
 		/local/tools/jsdoc-toolkit/templates/jsdoc
 

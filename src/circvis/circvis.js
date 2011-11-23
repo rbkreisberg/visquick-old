@@ -40,11 +40,11 @@
     *       legend_radius  : {Number} - Outer radius for legend circle plot.
     *   },
     *
-    *   WEDGE:[   {Array} - one Ring object for each ring plot
-    *       {
     *           DATA:{
     *               data_array : {Array} - An array of Circvis data nodes, ex : [ {"chr": "1", "end": 12784268, "start": 644269,
-                       "value": -0.058664}]
+    *                  "value": -0.058664}]
+    *               value_key : {String} - The property of each array element that signifies the value to evaluate for the ring.  This 
+    *                is useful for scatterplots and other types of rings.
     *           },
     *           PLOT :{
     *              type : The type to be drawn. Options are 'heatmap','histogram','scatterplot','karyotype'.  Defaults to 'histogram',
@@ -52,6 +52,10 @@
     *
     *           },
     *           OPTIONS: {
+    *               tile_padding  : {Number} Distance (in pixels) between tiles that arranged at different heights. default is  5 ,
+    *               tile_overlap_distance : {Number}  Minimum number of base pairs of separation in order to display tiles as neighbors. default is 0.1 ,
+    *               tile_height : {Number} - Number of pixels in height for tile type rings. Default is 5 ,
+    *               tile_show_all_tiles : {Boolean} - value to determines whether to overlap tiles in order to displa them all. default : false ,
     *               legend_label : {String} - optional string describing ring. Default is '',
     *               legend_description : {String} - Optional string to display when cursor is hovered over ring in legend.  Default is '',
     *               draw_axes : {Boolean} - Determines whether to draw axes and axes labels on a histogram or scatterplot.  Defautlts to true,
@@ -67,7 +71,8 @@
     *                       function(d) {return 'circle';},
     *               radius : {Function/Number} - scatterplot glyph radius.  Defaults to function(d) {return 2;}
     *               listener : {Function} - the function to call on a click.  it is passed {key,{start:{Integer},end:{Integer},value:{Number}},
-    *               tooltip_items: {Tooltip Object} - Defaults to {Chr:'chr',Start:'start',End:'end',Value:'value'}
+    *               tooltip_items: {Tooltip Items} - Defaults to {Chr:'chr',Start:'start',End:'end',Value:'value'},
+    *               tooltip_links: {Tooltip Links} - Displays links that can be constructed from datapoint attributes. Defaults to {}
     *           }
     *       }
     *
@@ -81,18 +86,24 @@
     *            height : {Number},  - The radius(in pixels) of the ring containing the tick labels/feature glyphs .  Defaults to 60,
     *            listener : {Function} - A function to execute on click of a glyph.  Function is passed {key, start,end, value}
     *            fill_style: {Function or CSS Color String} - A declared CSS color or a pv.Color must be the result  Default is function(){return 'red';},
+    *            stroke_style : {Function or CSS Color String} - A declared CSS color or a pv.Color must be the result  Default is function(){return 'white';},
     *            display_legend: {Boolean} - Setting this to <i>true</i> will display a legend on the upper left corner mapping the tick color
     *                       to the color_keys array.
     *            legend_corner : {String} - Anchor point for legend. Either ('ne','nw','se','sw') Defaults to 'nw',
     *            outer_padding : {Number} - The distance between the tool boundary and the feature glyph ring.  Defaults to 0,
     *            overlap_distance : {Number} - Used in tiling of the feature glyphs.  The maximum distance (in base pairs) that constitutes overlapping features.  Defaults to 7000000.0
+    *            tile_ticks : {Boolean} - Declare whether to tile feature glyphs or lay all of them out at the same level.  Defaults to true,
     *            label_key : {String} - The property of the feature data which denotes the feature label.  eg. {label:'GENEA'} would require label_key: 'label'
     *            label_map : {Array} - A mapping of an example feature label to a string describing that feature type.  Each element is an object.
     *                     eg. [{key:'TP53', label:'Gene'}].  Default is no mapping.
+    *            wedge_height : {Number},  - The height(in pixels) of each tick/feature glyphs .  Defaults to 10,
+    *            wedge_width : {Number},  - The width(in degrees) of each tick/feature glyphs .  Defaults to 0.5,    
+
     *            tooltip_items : {Tooltip Object} - JSON object that configures the tooltip display of a feature glyph. The mapping of each property is:
     *            tooltip label : 'data_point_property'.
     *                     The data_point_property can be statically defined or be a function that operates on the data point and returns a string. Default is:
     *                     { Chr : 'chr', Start : 'start', End : 'end', Label:'value'}
+        *               tooltip_links: {Tooltip Links} - Displays links that can be constructed from datapoint attributes. Defaults to {}
     *        }
     *    },
     *
@@ -116,6 +127,8 @@
     *            node_tooltip_items : {Tooltip Object} - Defaults to { Chr : 'chr', Start : 'start', End : 'end'},
     *            link_tooltip_items : {Tooltip Object} - Defaults to { 'Node 1 Chr' : 'sourceNode.chr', 'Node 1 Start' : 'sourceNode.start', 'Node1 End' : 'sourceNode.end',
     *                     'Node 2 Chr' : 'targetNode.chr', 'Node 2 Start' : 'targetNode.start', 'Node 2 End' : 'targetNode.end'},
+    *               node_tooltip_links: {Tooltip Links} - Displays links that can be constructed from datapoint attributes. Defaults to {},
+    *               link_tooltip_links: {Tooltip Links} - Displays links that can be constructed from datapoint attributes. Defaults to {}
     *
     *        }
     *    }
@@ -331,7 +344,7 @@ var tick_width = Math.PI / 180 * dataObj.ticks.wedge_width;
     dataObj.tick_panel.add(pv.Wedge)
             .events("all")
             .data(function(d) { return dataObj.ticks.data_map[d];  } )
-	        .angle(tick_angle)
+            .angle(tick_angle)
             .startAngle(function(c,d) { return feature_angle_map(c,d);})
             .innerRadius(inner)
             .outerRadius(outer)
@@ -442,12 +455,12 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
     var glyph_distance = function(c,d) { return (((d._tile_height + d._tile_padding) * c.level)
         + innerRadius + (d._radius() * 2));};
     var checked_endAngle = function(c,d) {
-	if (dataObj._chrom.keys.length == 1) {
-		return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2));
-	}
-	else if (this.parent.index+1 == dataObj._chrom.keys.length) { 
-		return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2));
-	}	
+    if (dataObj._chrom.keys.length == 1) {
+        return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2));
+    }
+    else if (this.parent.index+1 == dataObj._chrom.keys.length) { 
+        return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),dataObj.startAngle_map[dataObj._chrom.keys[0]] + (Math.PI * 2));
+    }   
         else {return Math.min(dataObj.startAngle_map[d] + dataObj.theta[d](c.end||c.start+1),
             dataObj.startAngle_map[dataObj._chrom.keys[(this.parent.index+1)%dataObj._chrom.keys.length]]);
         }
@@ -492,9 +505,9 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                     .textAlign("right")
                     .text(function(i) {return y_axis.tickFormat(i);});
                     }
-            panel_layer.add(pv.Wedge)	//histogram
+            panel_layer.add(pv.Wedge)   //histogram
                 .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
-                .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);	})
+                .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start);   })
                 .endAngle(checked_endAngle)
                 .innerRadius(function(c) { return thresholded_innerRadius(c[value_key]);} )
                 .outerRadius(function(c) { return thresholded_outerRadius(c[value_key]); } )
@@ -521,7 +534,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                         .textAlign("right")
                         .text(function(i) {return y_axis.tickFormat(i);});
             }
-            panel_layer.add(pv.Dot)	//scatterplot
+            panel_layer.add(pv.Dot) //scatterplot
                     .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                     .left(function(c,d) { return width/2 + (thresholded_value_to_radius(c[value_key]) * Math.cos(feature_angle(c))); })
                     .bottom(function(c,d) { return height/2 + (-1 * (thresholded_value_to_radius(c[value_key])) * Math.sin(feature_angle(c))); })
@@ -534,7 +547,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                     .event('mouseover',behavior);
             break;
         case 'glyph':
-            panel_layer.add(pv.Dot)	//glyph
+            panel_layer.add(pv.Dot) //glyph
                     .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                     .left(function(c,d) { return width/2 + (glyph_distance(c,dataObj._wedge[index])) *  Math.cos(feature_angle(c)); })
                     .bottom(function(c,d) { return height/2 + (-1 * glyph_distance(c,dataObj._wedge[index]) * Math.sin(feature_angle(c))); })
@@ -547,7 +560,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                     .event('mouseover',behavior);
             break;
             case 'band':
-            panel_layer.add(pv.Wedge)	//tile
+            panel_layer.add(pv.Wedge)   //tile
                 .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                 .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
                 .endAngle(checked_endAngle)
@@ -560,7 +573,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                 .event('mouseover',behavior);
             break;
         case 'tile':
-            panel_layer.add(pv.Wedge)	//tile
+            panel_layer.add(pv.Wedge)   //tile
                 .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                 .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
                 .endAngle(checked_endAngle)
@@ -573,7 +586,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                 .event('mouseover',behavior);
             break;
         case 'heatmap':
-            panel_layer.add(pv.Wedge)	//heatmap plot of cnv
+            panel_layer.add(pv.Wedge)   //heatmap plot of cnv
                 .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                 .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
                 .endAngle(function(c,d) {
@@ -591,7 +604,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
                 .event('mouseover',behavior);
             break;
         case 'karyotype':
-            panel_layer.add(pv.Wedge)	//karyotype
+            panel_layer.add(pv.Wedge)   //karyotype
                 .data(function(d) { return dataObj._wedge[index]._chr_map[d];})
                 .startAngle(function(c,d) { return dataObj.startAngle_map[d] + dataObj.theta[d](c.start); })
                 .endAngle(checked_endAngle)
@@ -783,9 +796,9 @@ vq.CircVis.prototype._add_network = function () {
 vq.CircVis.prototype._add_legend = function() {
     var  dataObj = this.chromoData,
             h = this.height(),
-	    w = this.width();
-		
-	var radius = dataObj._plot.legend_radius,
+        w = this.width();
+        
+    var radius = dataObj._plot.legend_radius,
             diameter = radius * 2,
             corner = dataObj._plot.legend_corner;
 
@@ -831,7 +844,7 @@ vq.CircVis.prototype._add_legend = function() {
             .innerRadius(legend_innerRadius)
             .title(function(c) { return dataObj._wedge[c]._legend_desc;})
             .lineWidth(0)
-	    .angle(Math.PI * 2)
+        .angle(Math.PI * 2)
             .fillStyle(legend_color)
             .strokeStyle(legend_color)
             .left(radius+10)
@@ -1021,7 +1034,7 @@ vq.models.CircVisData.prototype.setDataModel = function() {
     {label : '_plot.legend_corner', id: 'PLOT.legend_corner', cast: String, defaultValue : 'ne' },
     {label : '_plot.legend_radius', id: 'PLOT.legend_radius', cast: Number, defaultValue : 25 },
      {label : '_plot.legend_show_rings', id: 'PLOT.legend_show_rings', cast: Boolean, defaultValue : true },
-	{label : '_plot.rotate_degrees', id: 'PLOT.rotate_degrees', cast: Number, defaultValue : 0 },
+    {label : '_plot.rotate_degrees', id: 'PLOT.rotate_degrees', cast: Number, defaultValue : 0 },
      {label : '_plot.tooltip_timeout', id: 'PLOT.tooltip_timeout', cast: Number, defaultValue : 200 },
     {label : '_network.data', id: 'NETWORK.DATA.data_array',  optional : true },
     //{label : '_network.radius', id: 'NETWORK.OPTIONS.network_radius', cast : Number, defaultValue : 100 },
@@ -1237,7 +1250,7 @@ vq.models.CircVisData.prototype._setupData =  function() {
             var overlap_ratio =  7000000.0 / 3080419480;
              that.ticks.overlap_distance = overlap_ratio * totalChromLength;
         }
-	var tick_array = that.ticks.tile_ticks ? vq.utils.VisUtils.layoutChrTicks(that.ticks._data_array,that.ticks.overlap_distance) :
+    var tick_array = that.ticks.tile_ticks ? vq.utils.VisUtils.layoutChrTicks(that.ticks._data_array,that.ticks.overlap_distance) :
             that.ticks._data_array;
         
         var ticks_map = pv.nest(tick_array)
@@ -1278,7 +1291,6 @@ vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
      {label : '_data', id: 'DATA.data_array', defaultValue : [ {"chr": "1", "end": 12784268, "start": 644269,
          "value": -0.058664}]},
      {label : '_value_key', id: 'DATA.value_key', defaultValue : 'value',cast: String },
-
      {label : 'listener', id: 'OPTIONS.listener', defaultValue :  function(a,b) {} },
      {label : '_plot_type', id: 'PLOT.type', defaultValue : 'histogram' },
      {label : '_plot_height', id: 'PLOT.height', cast: Number, defaultValue : 100 },
