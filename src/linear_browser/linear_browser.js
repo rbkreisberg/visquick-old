@@ -544,6 +544,14 @@ vq.LinearBrowser.prototype._render = function() {
         context.add(pv.Rule)
                 .bottom(0);
 
+       /* Y-axis ticks. */
+        context.add(pv.Rule)
+                .bottom(0) 
+                .add(pv.Label)
+                .bottom(-21)
+                .text(dataObj.axes.x.label);
+                
+
         /* The selectable, draggable focus region. */
         context.add(pv.Panel)
                 .data(function() {return [that.window];})
@@ -608,6 +616,8 @@ vq.models.LinearBrowserData.prototype._setDataModel = function() {
            {label: 'min_position', id: 'PLOT.min_position', cast : Number, defaultValue: 0},
             {label: 'max_position', id: 'PLOT.max_position',cast : Number,  defaultValue: 100},
             {label: 'context_height', id: 'PLOT.context_height',cast : Number,  defaultValue: 50},
+             {label : 'axes.x.label', id: 'PLOT.axes.x.label', cast: String, defaultValue : '' },
+
             {label : 'tracks', id: 'TRACKS', defaultValue : [] }
     ];
 };
@@ -648,6 +658,7 @@ vq.models.LinearBrowserData.TrackData.prototype._setDataModel = function() {
     this._dataModel = [
         {label : 'label', id: 'label', cast: String, defaultValue : '' },
             {label : 'type', id: 'type', cast: String, defaultValue : 'scatter' },
+            {label : '_plot.axes.y.label', id: 'CONFIGURATION.axes.y.label', cast: String, defaultValue : '' },
             {label : 'fillStyle', id: 'CONFIGURATION.fill_style', cast: vq.utils.VisUtils.wrapProperty, defaultValue : null },
             {label : 'strokeStyle', id: 'CONFIGURATION.stroke_style', cast: vq.utils.VisUtils.wrapProperty, defaultValue : null },
             {label : 'lineWidth', id: 'CONFIGURATION.line_width', cast: vq.utils.VisUtils.wrapProperty, defaultValue : vq.utils.VisUtils.wrapProperty(1) },
