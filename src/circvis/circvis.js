@@ -1177,8 +1177,8 @@ vq.models.CircVisData.prototype._setupData =  function() {
             deviation = pv.deviation(wedge._data, function(d) { return d[value_label];});
             median = pv.median(wedge._data, function(d) { return d[value_label];});
 
-            wedge._min_plotValue =  (wedge._min_plotValue === undefined) ? parseFloat(((-1 * deviation) + median).toFixed(2)) : wedge._min_plotValue;
-            wedge._max_plotValue = (wedge._max_plotValue === undefined) ?  parseFloat((deviation + median).toFixed(2)) : wedge._max_plotValue;
+            wedge._min_plotValue =  (wedge._min_plotValue === undefined && !isNaN(deviation) && !isNaN(median)) ? parseFloat(((-1 * deviation) + median).toFixed(2)) : wedge._min_plotValue;
+            wedge._max_plotValue = (wedge._max_plotValue === undefined && !isNaN(deviation) && !isNaN(median)) ?  parseFloat((deviation + median).toFixed(2)) : wedge._max_plotValue;
 
             delete wedge._data;
         }); //foreach
