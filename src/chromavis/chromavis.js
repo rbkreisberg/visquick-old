@@ -200,11 +200,13 @@ vq.ChromaVis.prototype._render = function() {
                 j = Math.ceil(n ? -log(-domain[1]) : log(domain[1]));
         return function() { return pv.range(i,j+1,1).map(pow);};};
 
-    var dd =   vq.utils.VisUtils.clone(dataObj.data_array);
-    //array of array of  timestamps
-    var contents = dd.map(function(a) { return a[dataObj.data_contents_id].map(function(b) { return b[dataObj.x_column_id];});});
+//    var dd =   vq.utils.VisUtils.clone(dataObj.data_array);
+//    //array of array of  timestamps
+//    var contents = dd.map(function(a) { return a[dataObj.data_contents_id].map(function(b) { return b[dataObj.x_column_id];});});
 
     var init =  function() {
+
+        var contents = dataObj.data_array.map(function(a) { return a[dataObj.data_contents_id].map(function(b) { return b[dataObj.x_column_id];});});
 
         var d1,d2;
           if (!that.slaveRenderX) {
@@ -345,6 +347,8 @@ vq.ChromaVis.prototype._render = function() {
                     .data(function(d){ return d[dataObj.data_contents_id];})
                     .left(function(c) { return that.posX(c[dataObj.x_column_id]);})
                     .lineWidth(lineWidth)
+                    .interpolate('cardinal')
+                    .tension(0.7)
                     .bottom(function(c){ return dataObj.yScale(c[dataObj.y_column_id]);})
                     .strokeStyle(function() {return strokeStyle.call(this.parent);});
 
@@ -651,6 +655,8 @@ if (dataObj.data_array[0][dataObj.eri_id] != undefined && !isNaN(dataObj.data_ar
             .add(pv.Line)
                 .data(line)
                 .bottom(function(c,d) { return y_axis(gaussian(c,d));})
+                .interpolate('cardinal')
+                .tension(0.7)
                 .left(x_axis)
                 .strokeStyle(function() { return strokeStyle.call(this.parent);})
                 .lineWidth(dataObj.lineWidth);
