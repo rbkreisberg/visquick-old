@@ -145,7 +145,13 @@ vq.LinearBrowser.prototype._render = function() {
                 .strokeStyle("#888")
               .anchor("bottom").add(pv.Label)
                 .text(that.posX_scaled.tickFormat);
-            
+
+       /* X-axis label. */
+        plot.add(pv.Label)
+                .left(that.visibleWidth/2 - (dataObj.axes.x.label.length * 3/2))
+                .bottom(-21)
+                .text(dataObj.axes.x.label);
+
         var bg_panel = bg_plot.add(pv.Panel)
                 .left(0)
                 .width(that.visibleWidth);
@@ -545,17 +551,11 @@ vq.LinearBrowser.prototype._render = function() {
               .anchor("bottom").add(pv.Label)
                 .text(that.context_posX_scaled.tickFormat);
 
-        /* Y-axis ticks. */
-        context.add(pv.Rule)
-                .bottom(0);
-
        /* X-axis label. */
-        context.add(pv.Rule)
-                .bottom(0) 
-                .add(pv.Label)
+        context.add(pv.Label)
+                .left(that.visibleWidth /2 - (dataObj.axes.x.label.length * 3/2))
                 .bottom(-21)
                 .text(dataObj.axes.x.label);
-                
 
         /* The selectable, draggable focus region. */
         context.add(pv.Panel)
