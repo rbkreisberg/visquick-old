@@ -155,6 +155,10 @@ vq.ViolinPlot.prototype.draw = function(data) {
             var quartiles = pv.Scale.quantile(category[y]).quantiles(4).quantiles();
             //Freedman-Diaconis' choice for bin size
             var setSize = 2 * (quartiles[3] - quartiles[1]) / Math.pow(sampleCount,0.33);
+            //default to 1/10 the range
+            if (setSize == 0) {setSize = maxY - minY /10; }
+            //if no range, default to 1
+            if (setSize == 0) {setSize = 1; }
             category.dist = pv.range(minY- 3*setSize/2,maxY+ 3*setSize/2,setSize).map(function(subset) {
                         return {position : subset + setSize/2,
                             value : category[y].filter(function(val) { return val >= subset && val < subset + setSize;}).length/category[y].length};
