@@ -71,10 +71,14 @@ vq.LinearBrowser.prototype._render = function() {
         this.visibleHeight = (this.height() - this.vertical_padding() * 2);
         this.focus_height = this.visibleHeight - this.context_height();
         this.posX =  pv.Scale.linear().range(0,that.visibleWidth);
-            this.context_posX = pv.Scale.linear(that.min_position(), that.max_position()).range(0,that.visibleWidth);
+        this.posX_scaled =  pv.Scale.linear().range(0,that.visibleWidth);
+        this.context_posX = pv.Scale.linear(that.min_position(), that.max_position()).range(0,that.visibleWidth);
+        this.context_posX_scaled = pv.Scale.linear(that.min_position() * dataObj.axes.x.scale_multiplier, that.max_position()* dataObj.axes.x.scale_multiplier).range(0,that.visibleWidth);
 
         that.window = {x:that.context_posX.range()[0]*.2,dx:(that.context_posX.range()[1] - that.context_posX.range()[0]) *.6};
         that.posX.domain(that.context_posX.invert(that.window.x),that.context_posX.invert(that.window.x + that.window.dx));
+        that.posX_scaled.domain(that.context_posX_scaled.invert(that.window.x),that.context_posX_scaled.invert(that.window.x + that.window.dx));
+
         that.focus_window = {x:0,dx:0};
 
         var x = pv.Scale.linear(that.min_position(),that.max_position())
@@ -100,6 +104,7 @@ vq.LinearBrowser.prototype._render = function() {
                        var min_val = pv.max(dd.filter(function(d) { return d.start < d1;}),function(e) { return e.start;});
             var max_val = pv.min(dd.filter(function(d) { return d.start > d2;}),function(e) { return e.start;});
             that.posX.domain(d1, d2);
+            that.posX_scaled.domain(d1 * dataObj.axes.x.scale_multiplier, d2* dataObj.axes.x.scale_multiplier);
             dd = dataObj.tracks[index].type =='tile' ? dd.filter(function(d) { return d.start <= d2 || d.end >= d1;})
             : dd.filter(function(d){ return (d.start <= max_val && d.start >= min_val); } );
             return dd;
@@ -135,11 +140,11 @@ vq.LinearBrowser.prototype._render = function() {
             focus.add(pv.Rule)
                 .left(0)
               .add(pv.Rule)
-                .data(function() { return that.posX.ticks();} )
-                .left(that.posX)
+                .data(function() { return that.posX_scaled.ticks();} )
+                .left(that.posX_scaled)
                 .strokeStyle("#888")
               .anchor("bottom").add(pv.Label)
-                .text(that.posX.tickFormat);
+                .text(that.posX_scaled.tickFormat);
             
         var bg_panel = bg_plot.add(pv.Panel)
                 .left(0)
@@ -534,17 +539,17 @@ vq.LinearBrowser.prototype._render = function() {
                 .left(0)
           /* X-axis ticks. */
               .add(pv.Rule)		
-                .data(that.context_posX.ticks())
-                .left(that.context_posX)
+                .data(that.context_posX_scaled.ticks())
+                .left(that.context_posX_scaled)
                 .strokeStyle("#888")
               .anchor("bottom").add(pv.Label)
-                .text(that.context_posX.tickFormat);
+                .text(that.context_posX_scaled.tickFormat);
 
         /* Y-axis ticks. */
         context.add(pv.Rule)
                 .bottom(0);
 
-       /* Y-axis ticks. */
+       /* X-axis label. */
         context.add(pv.Rule)
                 .bottom(0) 
                 .add(pv.Label)
@@ -617,6 +622,7 @@ vq.models.LinearBrowserData.prototype._setDataModel = function() {
             {label: 'max_position', id: 'PLOT.max_position',cast : Number,  defaultValue: 100},
             {label: 'context_height', id: 'PLOT.context_height',cast : Number,  defaultValue: 50},
              {label : 'axes.x.label', id: 'PLOT.axes.x.label', cast: String, defaultValue : '' },
+            {label : 'axes.x.scale_multiplier', id: 'PLOT.axes.x.scale_multiplier', cast: Number, defaultValue : 1 },
 
             {label : 'tracks', id: 'TRACKS', defaultValue : [] }
     ];
