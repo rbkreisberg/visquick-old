@@ -561,7 +561,7 @@ vq.utils.SyncDatasources = function(timeout,total_checks,success_callback,args,f
     /** @private */
     vq.utils.SyncDatasources.prototype.check_args = function(){
         var check = true;
-        for (arg in this.args) {
+        for (var arg in this.args) {
             if (this.args[arg] == null) { check = false;}
         }
         return check;
@@ -579,5 +579,58 @@ vq.utils.SyncDatasources = function(timeout,total_checks,success_callback,args,f
         }
         setTimeout(function() { that.poll_args();},that.timeout);
     };
+
+
+/**
+ * @class Constructs a utility object for use with multiple-source Ajax requests.
+ * If data must be retrieved from several sources before a workflow may be started, this tool can be used to
+ * check that all callbacks have been made at least once.
+ *
+ * @param {callback}    function to call if all callbacks are made
+ * @param {scope}       scope to make callback under
+ * @param {optional}     pass additional arguments for callback
+ */
+
+vq.utils.SyncCallbacks = function(callback,scope){
+    var success_cb;
+
+    if (callback instanceof Function) {
+        success_cb = callback;
+    } else {
+        console.error('Error: callback function not passed to SynchCallbacks initializer.');
+        return;
+    }
+
+    var cb_hash = {};
+    var args = [];
+    //preserve additional arguments for later callback
+    for (var i=2;i<arguments.length;i++) {
+        args.push(arguments[i]);
+    }
+
+    return {
+        add : function(cb,cb_scope) {
+            // is it really a callback function?
+            if (!(cb instanceof Function)) { return null; }
+            //generate unique id for hash key for this callback function
+            var id = vq.utils.VisUtils.guid();
+            //initialize counter to 0 for this callback function
+            cb_hash[id] = 0;
+            return function() {
+                //be sure to pass response into handler
+                cb.apply(cb_scope,arguments);
+                cb_hash[id] += 1;
+                var count = 0;
+                //how many callback functions is this object currently tracking?
+                var total = Object.keys(cb_hash).length;
+                //count how many values are 1 or greater
+                Object.keys(cb_hash).forEach(function(k) { count += (cb_hash[k] > 0 ? 1 : 0);});
+                //if all values are 1 or greater, hit final callback
+                if (count >= total) success_cb.apply(scope,args);
+            };
+        }
+    };
+};
+
 
 
