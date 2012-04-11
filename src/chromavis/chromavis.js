@@ -66,7 +66,11 @@ vq.ChromaVis.prototype.windowchange = function(window_obj) {
     this.slaveRenderX = this.slaveX;
     this.slaveRenderY = this.slaveY;
     if (this.slaveRenderX) this.posX.domain(window_obj.pos.x.min,window_obj.pos.x.max);
-    if (this.slaveRenderY) this._bl_data.yScale.domain(window_obj.pos.y.min,window_obj.pos.y.max);
+    if (this.slaveRenderY) {
+        //this._bl_data.yScale.domain(window_obj.pos.y.min,window_obj.pos.y.max);
+        this.min_y_axis_value(window_obj.pos.x.min);
+        this.max_y_axis_value(window_obj.pos.y.max);
+    }
     this.drawPanel.render();
     this.slaveRenderX = false;
     this.slaveRenderY = false;
@@ -248,11 +252,11 @@ vq.ChromaVis.prototype._render = function() {
                 var y_max_val  =
                     pv.max(data,function(a) { return pv.max(a[dataObj.data_contents_id],function(b) {return b[dataObj.y_column_id];});});
                 var domain = dataObj.yScale.domain();
-                dataObj.yScale.domain(domain[0],y_max_val);
-            } else {
-                dataObj.yScale.domain(that.min_y_axis_value(),that.max_y_axis_value());
+                that.min_y_axis_value(domain[0]);
+                that.max_y_axis_value(y_max_val);
             }
         }
+        dataObj.yScale.domain(that.min_y_axis_value(),that.max_y_axis_value());
 
         return data;
     };
@@ -295,7 +299,7 @@ vq.ChromaVis.prototype._render = function() {
     focus.add(pv.Rule)
         .left(0)
         .add(pv.Rule)
-        .data(function() { return that.posX.ticks();} )
+        .data(function() { return that.posX.ticks(5);} )
         .left(that.posX)
         .strokeStyle("#888")
         .events('none')
@@ -361,14 +365,16 @@ vq.ChromaVis.prototype._render = function() {
     }
 
     //only plot base_value ruler line if it falls in the current range of y-axis values
-    if (dataObj.yScale.domain()[0] <= dataObj.base_value &&
-        dataObj.yScale.domain()[1] >= dataObj.base_value) {
-        focus.add(pv.Rule)
-            .bottom(function() { return dataObj.yScale(dataObj.base_value);});
-    } else { // otherwise put the ruler along the bottom.
+//    if (dataObj.yScale.domain()[0] <= dataObj.base_value &&
+//        dataObj.yScale.domain()[1] >= dataObj.base_value) {
+//        focus.add(pv.Rule)
+//            .bottom(function() { return dataObj.yScale(dataObj.base_value);});
+//    }
+
+     // otherwise put the ruler along the bottom.
         focus.add(pv.Rule)
             .bottom(0);
-    }
+
     focus.add(pv.Rule)
         .data(function() { return dataObj.yScale.ticks(5);})
         .bottom(function(c) {return dataObj.yScale(c);})
@@ -434,7 +440,7 @@ vq.ChromaVis.prototype._render = function() {
         .left(0)
         /* X-axis ticks. */
         .add(pv.Rule)
-        .data(that.context_posX.ticks())
+        .data(that.context_posX.ticks(5))
         .left(that.context_posX)
         .strokeStyle("#888")
         .anchor("bottom").add(pv.Label)
@@ -497,15 +503,17 @@ vq.ChromaVis.prototype._render = function() {
             that.window ={x: that.context_posX(that.posX.invert(that.focus_window.x)),
                 dx: that.context_posX(that.posX.invert(that.focus_window.dx)) -
                     that.context_posX(that.posX.invert(0))};
+            var x_window = {min:that.posX.invert(that.focus_window.x),
+                        max:that.posX.invert(that.focus_window.dx+that.focus_window.x)};
             that.focus_window = {x:0,dx:0};
-            var focus_window = that.focus_window;
             drawPanel.render();
+            var y_window = {min: dataObj.yScale.domain()[0], max : dataObj.yScale.domain()[1]};
             if (dataObj.dispatch_events) {
                 vq.events.Dispatcher.dispatch(
                     new vq.events.Event('chromavis_windowchange',that.uuid(),{
                         pos: {
-                            x:{min:that.posX.invert(focus_window.x),max:that.posX.invert(focus_window.dx+focus_window.x)},
-                            y:{min: dataObj.yScale.domain()[0], max : dataObj.yScale.domain()[1]}
+                            x:x_window,
+                            y:y_window
                         }
                     }));
             }
