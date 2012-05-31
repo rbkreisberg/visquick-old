@@ -277,21 +277,21 @@ vq.ViolinPlot.prototype.draw = function(data) {
             .left(function(set,label) { return xScale(label) + bandWidth + summary_map[label].bandScale(set.value);})
             .bottom(function(set) { return yScale(set.position);});
 
-        //data points
+     //data points
         if(dataObj._showPoints) {
             violinPanel.add(pv.Dot)
                 .def("active", -1)
-                .data(data_array)
-                .left(function(c) {
+                .data(function(c) { return summary_map[c][y];})
+                .left(function(_y,c) {
                     //if only one point in distribution, just put it on the axis
-                    if (summary_map[c[x]].dist.length < 1) {return xScale(c[x]) + bandWidth;}
+                    if (summary_map[c].dist.length < 1) {return xScale(c) + bandWidth;}
                     //if more than one point in distribution, wiggle it around
-                    var distSize = summary_map[c[x]].dist[Math.floor((c[y]-summary_map[c[x]].bottom)/summary_map[c[x]].setSize)].value;
-                    var distSize2 =  summary_map[c[x]].dist[Math.ceil((c[y]-summary_map[c[x]].bottom)/summary_map[c[x]].setSize)].value;
+                    var distSize = summary_map[c].dist[Math.floor((_y-summary_map[c].bottom)/summary_map[c].setSize)].value;
+                    var distSize2 =  summary_map[c].dist[Math.ceil((_y-summary_map[c].bottom)/summary_map[c].setSize)].value;
                     var average = (distSize +distSize2) / 3;
-                    return xScale(c[x]) + bandWidth + summary_map[c[x]].bandScale(Math.cos(this.index%(summary_map[c[x]][y].length/3))*average);
+                    return xScale(c) + bandWidth + summary_map[c].bandScale(Math.cos(this.index%(summary_map[c][y].length/3))*average);
                 })
-                .bottom(function(c) { return yScale(c[y]);})
+                .bottom(function(_y) { return yScale(_y);})
                 .shape(dataObj._shape)
                 .fillStyle(fillStyle)
                 .strokeStyle(strokeStyle)
@@ -305,7 +305,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
                 .event('click', dataObj._notifier)
                 .anchor("right").add(pv.Label)
                 .visible(function() {  return this.anchorTarget().active() == this.index;  })
-                .text(function(d) {  return dataObj.COLUMNLABEL.value + " " + d[value];  });
+                .text(function(_y,c) {  return dataObj.COLUMNLABEL.value + " " + summary_map[c][value][this.index];  });
         }
 
         /* Use an invisible panel to capture pan & zoom events. */
