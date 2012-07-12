@@ -135,9 +135,34 @@ vq.utils.VisUtils.set = function(obj,prop,value) {
 //function tick_node_id(tick) { return tick.chr + tick.start.toFixed(4) + tick.end.toFixed(4);};
     vq.utils.VisUtils.tick_node_id = function(tick) { return tick.value;};
 
+vq.utils.VisUtils.class_type = {};
+
+"Boolean Number String Function Array Date RegExp Object Null".split(" ").forEach(function(name,index) {
+        vq.utils.VisUtils.class_type[ "[object " + name + "]" ] = name.toLowerCase();
+});
+
+vq.utils.VisUtils.type = function(obj) {
+                      return vq.utils.VisUtils.class_type[ Object.prototype.toString.call(obj) ] || "object";
+};
+
     vq.utils.VisUtils.extend = function(target,source) {
-    for (var v in source) {
-          target[v] = source[v];
+        var a, src, copy, clone, isArray, isObject;
+    for (a in source) {
+        src = target[a];
+        copy = source[a];
+         if ( target === copy ) { //prevent inifinite loop
+            continue;
+         }
+
+        if (source.hasOwnProperty(a)) {
+            if ((isObject = (vq.utils.VisUtils.type(copy) == 'object')) || (isArray = (vq.utils.VisUtils.type(copy) == 'array'))) {
+                if (isObject) clone = (src && (vq.utils.VisUtils.type(src) == 'object')) ? src : {};
+                else clone = (src && (vq.utils.VisUtils.type(src) == 'array')) ? src : [];
+                target[a] = vq.utils.VisUtils.extend(clone,copy);
+            } else if (copy !== undefined) {
+                target[a] = copy;
+            }
+        }
     }
         return target;
 };
