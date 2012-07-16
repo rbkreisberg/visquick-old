@@ -111,8 +111,12 @@ vq.ScatterPlot.prototype._render = function() {
         var showMaxY = maxY + (Math.abs(maxY - minY) * 0.03);
 
         //start protovis code
+
         var xScale = pv.Scale.linear(showMinX, showMaxX).range(0, this.width());
         var yScale = pv.Scale.linear(showMinY, showMaxY).range(0, this.height());
+
+        var xTickFormat = dataObj._xAxisTickFormat || xScale.tickFormat;
+        var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat;
 
         //regression line!
         var regress = dataObj._regression;
@@ -163,6 +167,7 @@ vq.ScatterPlot.prototype._render = function() {
                 .event("mousemove", pv.Behavior.point())
                 .canvas(div);
 
+
         //y-axis ticks
         vis.add(pv.Rule)
                 .data(function() {
@@ -173,7 +178,7 @@ vq.ScatterPlot.prototype._render = function() {
                     return d ? "#ccc" : "#999"
                 })
                 .anchor("left").add(pv.Label)
-                .text(yScale.tickFormat);
+                .text(yTickFormat);
 
         //y-axis label
         vis.add(pv.Label)
@@ -194,7 +199,7 @@ vq.ScatterPlot.prototype._render = function() {
                     return d ? "#ccc" : "#999"
                 })
                 .anchor("bottom").add(pv.Label)
-                .text(xScale.tickFormat);
+                .text(xTickFormat);
 
         //x-axis label
         vis.add(pv.Label)
@@ -305,6 +310,14 @@ vq.models.ScatterPlotData.prototype.setDataModel = function () {
             defaultValue : function() {
                 return pv.color('steelblue').alpha(0.2);
             }},
+        {label : '_xAxisTickFormat', id: 'x_axis_tick_format',
+            cast : Function,
+            optional : true
+        },
+        {label : '_yAxisTickFormat', id: 'y_axis_tick_format',
+            cast : Function,
+            optional : true
+        },
         {label : '_strokeStyle', id: 'stroke_style',
             cast :vq.utils.VisUtils.wrapProperty, defaultValue : function() {
             return 'steelblue';
