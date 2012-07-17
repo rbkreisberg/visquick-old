@@ -292,10 +292,10 @@ vq.ViolinPlot.prototype.draw = function(data) {
                     return xScale(c) + bandWidth + summary_map[c].bandScale(Math.cos(this.index%(summary_map[c][y].length/3))*average);
                 })
                 .bottom(function(_y) { return yScale(_y);})
-                .shape(dataObj._shape)
-                .fillStyle(fillStyle)
-                .strokeStyle(strokeStyle)
-                .radius(dataObj._radius)
+                .shape(function(_y,c) { return dataObj._shape(summary_map[c]['other'][this.index]);})
+                .fillStyle(function(_y,c) { return fillStyle(summary_map[c]['other'][this.index]);})
+                .strokeStyle(function(_y,c) { return strokeStyle(summary_map[c]['other'][this.index]);})
+                .radius(function(_y,c) { return dataObj._radius(summary_map[c]['other'][this.index]);})
                 .event("point", function() {
                     return this.active(this.index).parent;
                 })
@@ -400,6 +400,10 @@ vq.models.ViolinPlotData.prototype._build_data = function(data) {
                 obj[that.COLUMNID.x] = label;
                 obj[that.COLUMNID.y] = set.map(function(val){return val[that.COLUMNID.y];});
                  obj[that.COLUMNID.value] = set.map(function(val){return val[that.COLUMNID.value];});
+                 obj['other'] = set.map(function(val){return vq.utils.VisUtils.extend({},val);}); 
+                 
+                 
+
                 that.data_summary.push(obj);
             });
     if (this.data.length > 0) this.setDataReady(true);
