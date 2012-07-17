@@ -180,6 +180,8 @@ vq.ViolinPlot.prototype.draw = function(data) {
 
         var yScale = pv.Scale.linear(showMinY, showMaxY).range(0, that.height());
 
+        var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat;
+
         //identify selected Probeset, if passed in.
         var selectedProbesetId;
 
@@ -209,7 +211,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
                     return d ? "#ccc" : "#999"
                 })
                 .anchor("left").add(pv.Label)
-                .text(yScale.tickFormat);
+                .text(yTickFormat);
 
         //y-axis label
         vis.add(pv.Label)
@@ -366,6 +368,10 @@ vq.models.ViolinPlotData.prototype.setDataModel = function () {
             defaultValue : function() {
                 return pv.color('steelblue').alpha(0.2);
             }},
+        {label : '_yAxisTickFormat', id: 'y_axis_tick_format',
+            cast : Function,
+            optional : true
+        },
         {label : '_strokeStyle', id: 'stroke_style',
             cast :vq.utils.VisUtils.wrapProperty, defaultValue : function() {
             return 'steelblue';
@@ -399,10 +405,8 @@ vq.models.ViolinPlotData.prototype._build_data = function(data) {
                 var set = that.data.filter(function(a){return a[that.COLUMNID.x]==label;});
                 obj[that.COLUMNID.x] = label;
                 obj[that.COLUMNID.y] = set.map(function(val){return val[that.COLUMNID.y];});
-                 obj[that.COLUMNID.value] = set.map(function(val){return val[that.COLUMNID.value];});
-                 obj['other'] = set.map(function(val){return vq.utils.VisUtils.extend({},val);}); 
-                 
-                 
+                obj[that.COLUMNID.value] = set.map(function(val){return val[that.COLUMNID.value];});
+                obj['other'] = set.map(function(val){return vq.utils.VisUtils.extend({},val);});
 
                 that.data_summary.push(obj);
             });
