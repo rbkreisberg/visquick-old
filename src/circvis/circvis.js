@@ -267,6 +267,37 @@ vq.CircVis.prototype.selectNodeLabel = function(label) {
     this.chromoData.tick_panel.render();
 };
 
+/**
+ *   Highlight connected nodes to the requested node. Passing the empty string('')
+ *   causes the highlighting to be turned off.
+ *
+ * @param {String} label - the node id (commonly the tick label string) of the feature to highlight
+ */
+vq.CircVis.prototype.highlightConnectedNodes = function(label){
+    var dataObj = this.chromoData;
+    var node_index,
+        result,
+        nodes1,
+        nodes2;
+
+    if (label == '') {
+        dataObj.network_panel.activeNetworkNode(null);
+        dataObj.network_panel.connectedToActiveNetworkNode([]);
+    }
+    else {
+        node_index = dataObj._network.label_to_node_index_map[label];
+
+        result = this._findConnectedNodes(node_index);
+        nodes1 = result.nodes1;
+        nodes2 = result.nodes2;
+
+        dataObj.network_panel.activeNetworkNode(node_index);
+        dataObj.network_panel.connectedToActiveNetworkNode(nodes1.concat(nodes2));
+    }
+
+    dataObj.network_panel.render();
+};
+
 /** @private **/
 
 vq.CircVis.prototype._setOptionDefaults = function(options) {
@@ -418,7 +449,7 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
             .outerRadius(outerPlotRadius)
             .angle(function(d) { return dataObj.normalizedLength[d] * 2 * Math.PI;} )
             .startAngle(function(d) { return dataObj.startAngle_map[d]; } )
-            .fillStyle("#ddd")
+            .fillStyle(dataObj._wedge[index]._backgroundStyle)
             .strokeStyle("#444")
             .lineWidth(1)
             .overflow("hidden")
@@ -622,7 +653,27 @@ vq.CircVis.prototype._add_wedge = function(index,outerRadius) {
 };
 
 /** private **/
+vq.CircVis.prototype._findConnectedNodes = function(nodes_array_index) {
+    var dataObj = this.chromoData;
+
+    var nodes1 = dataObj._network.links_array.filter(function(d) {
+        return d.source == nodes_array_index;}).map(function(b) {
+        return {node:b.targetNode,linkValue:b.linkValue};
+    });
+    var nodes2 = dataObj._network.links_array.filter(function(d) {
+        return d.target == nodes_array_index;}).map(function(b) {
+        return {node:b.sourceNode,linkValue:b.linkValue};
+    });
+
+    return {
+        nodes1: nodes1,
+        nodes2: nodes2
+    }
+};
+
+/** private **/
 vq.CircVis.prototype._add_network = function () {
+    var that = this;
     var     dataObj = this.chromoData,
             w = this.width(),
             h = this.height();
@@ -732,14 +783,9 @@ vq.CircVis.prototype._add_network = function () {
     }
 
     function populateConnectedNodes(nodes_array_index) {
-        var nodes1 = dataObj._network.links_array.filter(function(d) {
-            return d.source == nodes_array_index;}).map(function(b) {
-            return {node:b.targetNode,linkValue:b.linkValue};
-        });
-        var nodes2 = dataObj._network.links_array.filter(function(d) {
-            return d.target == nodes_array_index;}).map(function(b) {
-            return {node:b.sourceNode,linkValue:b.linkValue};
-        });
+        var result = that._findConnectedNodes(nodes_array_index);
+        var nodes1 = result.nodes1,
+            nodes2 = result.nodes2;
         dataObj.network_panel.connectedToActiveNetworkNode(nodes1.concat(nodes2));
     }
 
@@ -1228,6 +1274,12 @@ vq.models.CircVisData.prototype._setupData =  function() {
         });
         this._network.nodes_array = this._network.tile_nodes ?  vq.utils.VisUtils.layoutChrTiles(node_array,that._network.node_overlap_distance) : node_array;
         this._network.links_array = links_array;
+
+        this._network.label_to_node_index_map = {};
+        this._network.nodes_array.forEach(function(node, index) {
+            that._network.label_to_node_index_map[node.label] = index;
+        });
+
         this._network.data = 'loaded';
         nodes = [];
         node_array = [];
@@ -1285,6 +1337,7 @@ vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
      {label : '_plot_height', id: 'PLOT.height', cast: Number, defaultValue : 100 },
      {label : '_fillStyle', id: 'OPTIONS.fill_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) { return pv.color('red');} },
      {label : '_strokeStyle', id: 'OPTIONS.stroke_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return pv.color('red');} },
+     {label : '_backgroundStyle', id: 'OPTIONS.background_style', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) { return pv.color('#ddd');} },
      {label : '_shape', id: 'OPTIONS.shape', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return 'circle';} },
      {label : '_radius', id: 'OPTIONS.radius', cast : vq.utils.VisUtils.wrapProperty, defaultValue : function(d) {return 2;} },
      {label : '_outer_padding', id: 'OPTIONS.outer_padding', cast : Number, defaultValue : 1 },
