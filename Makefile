@@ -26,7 +26,6 @@ full: \
 	vq.stemplot.js \
 	vq.scatterplot.js \
 	vq.flexscroll.js \
-	vq.omics_heatmap.js \
 	vq.par_coord.js
 
 min: \
@@ -40,7 +39,6 @@ min: \
 	vq.stemplot.min.js \
 	vq.scatterplot.min.js \
 	vq.flexscroll.min.js \
-	vq.omics_heatmap.min.js \
 	vq.par_coord.min.js
 
 vq.js: \
@@ -78,9 +76,6 @@ vq.scatterplot.js: \
 
 vq.flexscroll.js: \
 	src/flexscroll/flexscroll.js
-
-vq.omics_heatmap.js: \
-	src/omics_heatmap/omics_heatmap.js
 
 vq.par_coord.js: \
 	src/par_coord/parallel_coordinates.js
