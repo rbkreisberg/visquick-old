@@ -247,7 +247,7 @@ vq.CircVis.prototype.setSize = function(height, width) {
 vq.CircVis.prototype.selectNodeLabel = function(label) {
     if (label == '') //empty all active lists
     {
-        this.chromoData.network_panel.activeNetworkNode(null);
+        this.chromoData.network_panel.activeNetworkNode([]);
         this.chromoData.network_panel.render();
         this.chromoData.tick_panel.activeTickList([]);
         this.chromoData.tick_panel.render();
@@ -275,24 +275,30 @@ vq.CircVis.prototype.selectNodeLabel = function(label) {
  */
 vq.CircVis.prototype.highlightConnectedNodes = function(label){
     var dataObj = this.chromoData;
-    var node_index,
+    var that = this;
+    var node_indices,
+        node_index,
         result,
         nodes1,
-        nodes2;
+        nodes2,
+        total_nodes = new Array();
 
     if (label == '') {
-        dataObj.network_panel.activeNetworkNode(null);
+        dataObj.network_panel.activeNetworkNode([]);
         dataObj.network_panel.connectedToActiveNetworkNode([]);
     }
     else {
-        node_index = dataObj._network.label_to_node_index_map[label];
+        node_indices = dataObj._network.label_to_node_index_map[label];
 
-        result = this._findConnectedNodes(node_index);
-        nodes1 = result.nodes1;
-        nodes2 = result.nodes2;
+        node_indices.forEach(function(node_index) {
+            result = that._findConnectedNodes(node_index);
+            nodes1 = result.nodes1;
+            nodes2 = result.nodes2;
+            total_nodes = total_nodes.concat(nodes1.concat(nodes2));
+        });
 
-        dataObj.network_panel.activeNetworkNode(node_index);
-        dataObj.network_panel.connectedToActiveNetworkNode(nodes1.concat(nodes2));
+        dataObj.network_panel.activeNetworkNode(node_indices);
+        dataObj.network_panel.connectedToActiveNetworkNode(total_nodes);
     }
 
     dataObj.network_panel.render();
@@ -691,7 +697,7 @@ vq.CircVis.prototype._add_network = function () {
        }
                ).call(this,d),
 
-        dataObj.network_panel.activeNetworkNode(this.index),
+        dataObj.network_panel.activeNetworkNode([this.index]),
         populateConnectedNodes(this.index),
         dataObj.network_panel.render()
         );};
@@ -737,16 +743,16 @@ vq.CircVis.prototype._add_network = function () {
 
     var node_stroke =  function(node) {return pv.color(dataObj._network.node_strokeStyle(node));};
 
-    var link_active = function(c,d)  {return (dataObj.network_panel.activeNetworkNode() == null ||
+    var link_active = function(c,d)  {return (!dataObj.network_panel.activeNetworkNode().length ||
             this.parent.index == dataObj.network_panel.activeNetworkLink() ||
-            d.source == dataObj.network_panel.activeNetworkNode() ||
-            d.target == dataObj.network_panel.activeNetworkNode()) &&
+            !!~dataObj.network_panel.activeNetworkNode().indexOf(d.source) ||
+            !!~dataObj.network_panel.activeNetworkNode().indexOf(d.target)) &&
             (linkDegreeInBounds(d.sourceNode) || linkDegreeInBounds(d.targetNode));};
 
     var link_width_active = function(node, link) {
         return (this.parent.index == dataObj.network_panel.activeNetworkLink() ||
-                link.source == dataObj.network_panel.activeNetworkNode() ||
-                link.target == dataObj.network_panel.activeNetworkNode() ) ?
+                !!~dataObj.network_panel.activeNetworkNode().indexOf(link.source) ||
+                !!~dataObj.network_panel.activeNetworkNode().indexOf(link.target)) ?
                 dataObj._network.link_line_width(node, link) + 1.0 : dataObj._network.link_line_width(node, link);
     };
 
@@ -772,8 +778,8 @@ vq.CircVis.prototype._add_network = function () {
 
     function link_strokeStyle(c,d) {
         return (this.parent.index == dataObj.network_panel.activeNetworkLink() ||
-                d.source == dataObj.network_panel.activeNetworkNode() ||
-                d.target == dataObj.network_panel.activeNetworkNode() ) ?
+                !!~dataObj.network_panel.activeNetworkNode().indexOf(d.source) ||
+                !!~dataObj.network_panel.activeNetworkNode().indexOf(d.target)) ?
                 link_color(d).darker(2).alpha(dataObj._network.link_alpha(d)) :
                 link_color(d).alpha(dataObj._network.link_alpha(d) );
     }
@@ -795,7 +801,7 @@ vq.CircVis.prototype._add_network = function () {
 
     dataObj.network_panel = this.event_panel.add(pv.Layout.Network)
             .def('connectedToActiveNetworkNode', [])
-            .def('activeNetworkNode', null)
+            .def('activeNetworkNode', [])
             .def('activeNetworkLink', null)
             .nodes(dataObj._network.nodes_array)
             .links(dataObj._network.links_array);
@@ -828,7 +834,7 @@ vq.CircVis.prototype._add_network = function () {
             .event('mouseover',node_behavior)
             //.title(dataObj._network.node_tooltipFormat)
             .event('mouseout', function() {
-        dataObj.network_panel.activeNetworkNode(null);
+        dataObj.network_panel.activeNetworkNode([]);
         dataObj.network_panel.connectedToActiveNetworkNode([]);
         dataObj.network_panel.render();
     })
@@ -1277,7 +1283,12 @@ vq.models.CircVisData.prototype._setupData =  function() {
 
         this._network.label_to_node_index_map = {};
         this._network.nodes_array.forEach(function(node, index) {
-            that._network.label_to_node_index_map[node.label] = index;
+            if (that._network.label_to_node_index_map[node.label] === undefined) {
+               that._network.label_to_node_index_map[node.label] = [index];     
+            } 
+            else {
+                that._network.label_to_node_index_map[node.label].push(index); 
+            }
         });
 
         this._network.data = 'loaded';
