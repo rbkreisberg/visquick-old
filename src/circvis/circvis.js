@@ -289,6 +289,8 @@ vq.CircVis.prototype.highlightConnectedNodes = function(label){
     }
     else {
         node_indices = dataObj._network.label_to_node_index_map[label];
+        //bail if the label is not in the array
+        if (node_indices === undefined) { return; }
 
         node_indices.forEach(function(node_index) {
             result = that._findConnectedNodes(node_index);
