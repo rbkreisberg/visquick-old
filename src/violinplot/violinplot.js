@@ -180,6 +180,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
 
         var yScale = pv.Scale.linear(showMinY, showMaxY).range(0, that.height());
 
+        var xTickFormat = dataObj._xAxisTickFormat || xScale.tickFormat;
         var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat;
 
         //identify selected Probeset, if passed in.
@@ -218,7 +219,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
                 .text(dataObj.COLUMNLABEL.y)
                 .font(that.font)
                 .textAlign("center")
-                .left(-24)
+                .left(-1*this.horizontal_padding()+14)
                 .bottom(this.height() / 2)
                 .textAngle(-1 * Math.PI / 2);
 
@@ -229,7 +230,8 @@ vq.ViolinPlot.prototype.draw = function(data) {
                 .strokeStyle(function(d) {
                     return d ? "#ccc" : "#999"
                 })
-                .anchor("bottom").add(pv.Label);
+                .anchor("bottom").add(pv.Label)
+                .text(xTickFormat);
 
         //x-axis label
         vis.add(pv.Label)
@@ -368,6 +370,10 @@ vq.models.ViolinPlotData.prototype.setDataModel = function () {
             defaultValue : function() {
                 return pv.color('steelblue').alpha(0.2);
             }},
+        {label : '_xAxisTickFormat', id: 'x_axis_tick_format',
+            cast : Function,
+            optional : true
+        },
         {label : '_yAxisTickFormat', id: 'y_axis_tick_format',
             cast : Function,
             optional : true

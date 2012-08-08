@@ -119,6 +119,10 @@ vq.CubbyHole.prototype.draw = function(data) {
         var padHeight = bandHeight /4;
         var padWidth = bandWidth /4;
 
+        var xTickFormat = dataObj._xAxisTickFormat || xScale.tickFormat;
+        var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat;
+
+
         //start protovis code
 
         //identify selected Probeset, if passed in.
@@ -147,14 +151,15 @@ vq.CubbyHole.prototype.draw = function(data) {
                 .strokeStyle(function(d) {
                     return d ? "#ccc" : "#999"
                 })
-                .anchor("left").add(pv.Label);
+                .anchor("left").add(pv.Label)
+                .text(yTickFormat);
 
         //y-axis label
         vis.add(pv.Label)
                 .text(dataObj.COLUMNLABEL.y)
                 .font(that.font)
                 .textAlign("center")
-                .left(-20)
+                .left(-1*this.horizontal_padding()+14)
                 .bottom(this.height() / 2)
                .textAngle(-1 * Math.PI / 2);
 
@@ -165,7 +170,8 @@ vq.CubbyHole.prototype.draw = function(data) {
                 .strokeStyle(function(d) {
                     return d ? "#ccc" : "#999"
                 })
-                .anchor("bottom").add(pv.Label);
+                .anchor("bottom").add(pv.Label)
+                .text(xTickFormat);
 
         //x-axis label
         vis.add(pv.Label)
@@ -305,6 +311,14 @@ vq.models.CubbyHoleData.prototype.setDataModel = function () {
         {label : 'COLUMNLABEL.value', id: 'valuecolumnlabel',cast : String, defaultValue : ''},
         {label : 'tooltipItems', id: 'tooltip_items', defaultValue : {
             X : 'X', Y : 'Y', Value : 'VALUE'            }  },
+        {label : '_xAxisTickFormat', id: 'x_axis_tick_format',
+            cast : Function,
+            optional : true
+        },
+        {label : '_yAxisTickFormat', id: 'y_axis_tick_format',
+            cast : Function,
+            optional : true
+        },
         {label : '_fillStyle', id: 'fill_style',cast :vq.utils.VisUtils.wrapProperty,
             defaultValue : function() {
                 return pv.color('steelblue').alpha(0.2);

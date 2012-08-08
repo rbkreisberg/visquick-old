@@ -185,7 +185,7 @@ vq.ScatterPlot.prototype._render = function() {
                 .text(dataObj.COLUMNLABEL.y)
                 .font(that.font)
                 .textAlign("center")
-                .left(-24)
+                .left(-1*this.horizontal_padding()+14)
                 .bottom(this.height() / 2)
                 .textAngle(-1 * Math.PI / 2);
 
