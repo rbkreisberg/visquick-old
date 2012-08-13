@@ -180,8 +180,8 @@ vq.ViolinPlot.prototype.draw = function(data) {
 
         var yScale = pv.Scale.linear(showMinY, showMaxY).range(0, that.height());
 
-        var xTickFormat = dataObj._xAxisTickFormat || xScale.tickFormat;
-        var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat;
+       var xTickFormat = dataObj._xAxisTickFormat || xScale.tickFormat || function(a) { return a;};
+    var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat || function(a) { return a;};
 
         //identify selected Probeset, if passed in.
         var selectedProbesetId;

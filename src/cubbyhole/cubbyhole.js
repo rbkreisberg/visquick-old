@@ -119,8 +119,8 @@ vq.CubbyHole.prototype.draw = function(data) {
         var padHeight = bandHeight /4;
         var padWidth = bandWidth /4;
 
-        var xTickFormat = dataObj._xAxisTickFormat || xScale.tickFormat;
-        var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat;
+       var xTickFormat = dataObj._xAxisTickFormat || xScale.tickFormat || function(a) { return a;};
+        var yTickFormat = dataObj._yAxisTickFormat || yScale.tickFormat || function(a) { return a;};
 
 
         //start protovis code
@@ -367,8 +367,16 @@ vq.models.CubbyHoleData.prototype._build_data = function(data) {
     });
 
     //maintain a strict ordering on the category labels
-    this.sortOrderX = pv.uniq(that.data, function(a) { return a[x];}).sort();
-    this.sortOrderY = pv.uniq(that.data, function(a) { return a[y];}).sort();
+        if (isNaN(parseFloat(pv.sum(that.data, function(a) { return a[x];})))) {
+            this.sortOrderX = pv.uniq(that.data, function(a) { return a[x];}).sort();
+        } else {
+            this.sortOrderX = pv.uniq(that.data, function(a) { return parseFloat(a[x]);}).sort(function(a,b) { return a-b;});
+        }
+        if (isNaN(parseFloat(pv.sum(that.data, function(a) { return a[y];})))) {
+            this.sortOrderY = pv.uniq(that.data, function(a) { return a[y];}).sort();
+        } else {
+            this.sortOrderY = pv.uniq(that.data, function(a) { return parseFloat(a[y]);}).sort(function(a,b) { return a-b;});
+        }
 
     if (this.data.length > 0) this.setDataReady(true);
 
