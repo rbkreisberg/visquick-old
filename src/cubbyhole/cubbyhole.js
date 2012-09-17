@@ -367,12 +367,12 @@ vq.models.CubbyHoleData.prototype._build_data = function(data) {
     });
 
     //maintain a strict ordering on the category labels
-        if (isNaN(parseFloat(pv.sum(that.data, function(a) { return a[x];})))) {
+        if (that.data.map(function(f) { return f[x];}).some(isNaN)) {
             this.sortOrderX = pv.uniq(that.data, function(a) { return a[x];}).sort();
         } else {
             this.sortOrderX = pv.uniq(that.data, function(a) { return parseFloat(a[x]);}).sort(function(a,b) { return a-b;});
         }
-        if (isNaN(parseFloat(pv.sum(that.data, function(a) { return a[y];})))) {
+        if (that.data.map(function(f) { return f[y];}).some(isNaN)) {
             this.sortOrderY = pv.uniq(that.data, function(a) { return a[y];}).sort();
         } else {
             this.sortOrderY = pv.uniq(that.data, function(a) { return parseFloat(a[y]);}).sort(function(a,b) { return a-b;});
