@@ -131,8 +131,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
         var data_summary = dataObj.data_summary;
         var summary_map = {};
         var highest = -9999999,lowest = 9999999;
-	 if (typeof data_array[0][x] == 'number') data_array.sort(function(a,b) { return a[x]-b[x];} ); //sort numerically ascending
-         var xScale = pv.Scale.ordinal(data_array,function(val){return val[x];}).splitBanded(0, that.width(),0.8);
+	    var xScale = pv.Scale.ordinal(dataObj.sortOrderX).splitBanded(0, that.width(),0.8);
         var bandWidth = xScale.range().band / 2;
 
         data_summary.forEach(function(category) {
@@ -398,6 +397,7 @@ vq.models.ViolinPlotData.prototype.setDataModel = function () {
 vq.models.ViolinPlotData.prototype._build_data = function(data) {
     var that = this;
     this._processData(data);
+    var x = that.COLUMNID.x;
 
     if (this.COLUMNLABEL.x == '') this.COLUMNLABEL.x = this.COLUMNID.x;
     if (this.COLUMNLABEL.y == '') this.COLUMNLABEL.y = this.COLUMNID.y;
@@ -406,7 +406,12 @@ vq.models.ViolinPlotData.prototype._build_data = function(data) {
 
     //aggregate categorical data
             this.data_summary = [];
-            pv.uniq(that.data,function(val) { return val[that.COLUMNID.x];}).forEach(function(label){
+               if (that.data.map(function(f) { return f[x];}).some(isNaN)) {
+            this.sortOrderX = pv.uniq(that.data, function(a) { return a[x];}).sort();
+        } else {
+            this.sortOrderX = pv.uniq(that.data, function(a) { return parseFloat(a[x]);}).sort(function(a,b) { return a-b;});
+        }
+            this.sortOrderX.forEach(function(label){
                 var obj={};
                 var set = that.data.filter(function(a){return a[that.COLUMNID.x]==label;});
                 obj[that.COLUMNID.x] = label;
