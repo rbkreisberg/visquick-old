@@ -241,8 +241,13 @@ vq.ViolinPlot.prototype.draw = function(data) {
                 .left(this.width() / 2);
 
         var panel = vis.add(pv.Panel)
-                .events('all')
+                .events('none')
                 .overflow("hidden");
+        
+        var dataPanel = vis.add(pv.Panel)
+                        .data(xScale.domain())
+                        .events('all')
+                        .overflow("visible");
 
         var strokeStyle = function(data) {
             return pv.color(dataObj._strokeStyle(data));
@@ -298,6 +303,24 @@ vq.ViolinPlot.prototype.draw = function(data) {
                 .shape(function(_y,c) { return dataObj._shape(summary_map[c]['other'][this.index]);})
                 .fillStyle(function(_y,c) { return fillStyle(summary_map[c]['other'][this.index]);})
                 .strokeStyle(function(_y,c) { return strokeStyle(summary_map[c]['other'][this.index]);})
+                .radius(function(_y,c) { return dataObj._radius(summary_map[c]['other'][this.index]);});
+
+            dataPanel.add(pv.Dot)
+                .def("active", -1)
+                .data(function(c) { return summary_map[c][y];})
+                .left(function(_y,c) {
+                    //if only one point in distribution, just put it on the axis
+                    if (summary_map[c].dist.length < 1) {return xScale(c) + bandWidth;}
+                    //if more than one point in distribution, wiggle it around
+                    var distSize = summary_map[c].dist[Math.floor((_y-summary_map[c].bottom)/summary_map[c].setSize)].value;
+                    var distSize2 =  summary_map[c].dist[Math.ceil((_y-summary_map[c].bottom)/summary_map[c].setSize)].value;
+                    var average = (distSize +distSize2) / 3;
+                    return xScale(c) + bandWidth + summary_map[c].bandScale(Math.cos(this.index%(summary_map[c][y].length/3))*average);
+                })
+                .bottom(function(_y) { return yScale(_y);})
+                .shape(function(_y,c) { return dataObj._shape(summary_map[c]['other'][this.index]);})
+                .fillStyle(null)
+                .strokeStyle(null)
                 .radius(function(_y,c) { return dataObj._radius(summary_map[c]['other'][this.index]);})
                 .event("point", function() {
                     return this.active(this.index).parent;
@@ -306,7 +329,7 @@ vq.ViolinPlot.prototype.draw = function(data) {
                     return this.active(-1).parent;
                 })
                 .event('click', dataObj._notifier)
-                .anchor("right").add(pv.Label)
+              .anchor("right").add(pv.Label)
                 .visible(function() {  return this.anchorTarget().active() == this.index;  })
                 .text(function(_y,c) {  return dataObj.COLUMNLABEL.value + " " + summary_map[c][value][this.index];  });
         }
