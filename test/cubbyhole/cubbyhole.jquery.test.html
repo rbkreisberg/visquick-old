@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>VisQuick/jQuery cubbyhole plot demo</title>
+
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+        <script type="text/javascript" src="http://vis.systemsbiology.net/visquick/js/visquick-core-1.0/protovis-r3.3.1.js"></script>
+        <script type="text/javascript" src="http://vis.systemsbiology.net/visquick/js/visquick-core-1.0/visquick-utils.js"></script>
+
+        <script type="text/javascript" src="http://vis.systemsbiology.net/visquick/js/cubbyhole/cubbyhole.js"></script>
+        <script type="text/javascript" src="../../src/cubbyhole/cubbyhole.jquery.js"></script>
+    </head>
+    <body>
+        <div id="div_visualization" style="display:block;float:none;"></div>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                var data_array = pv.range(0,800).map(function(val) {
+                    var x =  'ABCD'.split("")[Math.floor(Math.random()*4)];
+                    var y =  'ABCD'.split("")[Math.floor(Math.random()*4)];
+                    return {
+                        x: x,
+                        id: x + y,
+                        y: y
+                    }
+                });
+
+                var plot_data ={
+                    DATATYPE : "vq.models.CubbyHoleData",
+                    CONTENTS : {
+                        PLOT : {
+                            width : 700,
+                            height: 400,
+                            dblclick_notifier : function() { },
+                            vertical_padding : 40,
+                            horizontal_padding: 40,
+                            font :"14px sans"
+                        },
+                        data_array: data_array,
+                        xcolumnid: 'x',
+                        ycolumnid: 'y',
+                        valuecolumnid: 'id'
+                    }
+                };
+
+                $('#div_visualization').cubbyhole(plot_data);
+            });
+        </script>
+    </body>
+</html>

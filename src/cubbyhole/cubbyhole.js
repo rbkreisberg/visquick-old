@@ -191,8 +191,12 @@ vq.CubbyHole.prototype.draw = function(data) {
                       .strokeStyle('#444');
 
         var panel = vis.add(pv.Panel)
-            .events('all')
+            .events('none')
             .overflow("hidden");
+
+        var dataPanel = vis.add(pv.Panel)
+                        .events('all')
+                        .overflow("visible");
 
         var strokeStyle = function(data) {
             return pv.color(dataObj._strokeStyle(data));
@@ -239,7 +243,7 @@ vq.CubbyHole.prototype.draw = function(data) {
         };
 
         if(dataObj._showPoints) {
-       var dot= violinPanel.add(pv.Dot)
+       violinPanel.add(pv.Dot)
                  .data(data_array)
                 .def("active", -1)
                 .left(function(c) {
@@ -251,7 +255,21 @@ vq.CubbyHole.prototype.draw = function(data) {
                 .shape(dataObj._shape)
                 .fillStyle(fillStyle)
                 .strokeStyle(strokeStyle)
-                .radius(dataObj._radius)
+                .radius(dataObj._radius);
+
+            var dot=   dataPanel.add(pv.Dot)
+                 .data(data_array)
+                .def("active", -1)
+                .left(function(c) {
+                    return xScale(c[x]) + bandWidth + x_pos(c.dist_index);
+                })
+                .bottom(function(c) {
+                    return yScale(c[y])+bandHeight + y_pos(c.dist_index);
+                })
+                .shape(dataObj._shape)
+                .fillStyle(null)
+                .strokeStyle(null)
+                .radius(dataObj._radius) 
                 .event("point", function() {
                      this.active(this.index);
                     return label.render();
@@ -260,7 +278,7 @@ vq.CubbyHole.prototype.draw = function(data) {
                      this.active(-1);
                     return label.render();
                 })
-                .event('click', dataObj._notifier)
+                .event('click', dataObj._notifier);
 
                 var label = dot.anchor("right").add(pv.Label)
                 .visible(function() {  return this.anchorTarget().active() == this.index;  })
@@ -367,12 +385,12 @@ vq.models.CubbyHoleData.prototype._build_data = function(data) {
     });
 
     //maintain a strict ordering on the category labels
-        if (isNaN(parseFloat(pv.sum(that.data, function(a) { return a[x];})))) {
+        if (that.data.map(function(f) { return f[x];}).some(isNaN)) {
             this.sortOrderX = pv.uniq(that.data, function(a) { return a[x];}).sort();
         } else {
             this.sortOrderX = pv.uniq(that.data, function(a) { return parseFloat(a[x]);}).sort(function(a,b) { return a-b;});
         }
-        if (isNaN(parseFloat(pv.sum(that.data, function(a) { return a[y];})))) {
+        if (that.data.map(function(f) { return f[y];}).some(isNaN)) {
             this.sortOrderY = pv.uniq(that.data, function(a) { return a[y];}).sort();
         } else {
             this.sortOrderY = pv.uniq(that.data, function(a) { return parseFloat(a[y]);}).sort(function(a,b) { return a-b;});

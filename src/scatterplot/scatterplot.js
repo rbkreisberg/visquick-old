@@ -236,8 +236,12 @@ vq.ScatterPlot.prototype._render = function() {
                 .left(this.width() / 2);
 
         var panel = vis.add(pv.Panel)
-                .events('all')
+                .events('none')
                 .overflow("hidden");
+
+        var dataPanel = vis.add(pv.Panel)
+                        .events('all')
+                        .overflow("visible");
 
         if (!isNaN(slope) && regress !=='' && regress !== 'loess') {
             panel.add(pv.Line)
@@ -279,21 +283,37 @@ vq.ScatterPlot.prototype._render = function() {
                 .strokeStyle(strokeStyle)
                 .fillStyle(fillStyle)
                 .radius(dataObj._radius)
-                .shape(dataObj._shape)
-                .event("point", function() {
+                .shape(dataObj._shape);
+                
+
+                dataPanel.add(pv.Dot)
+                    .def("active", -1)
+                    .data(data_array)
+                    .left(function(d) {
+                        return xScale(d[x]);
+                    })
+                    .bottom(function(d) {
+                        return yScale(d[y])
+                    })
+                    .strokeStyle(null)
+                    .fillStyle(null)
+                    .radius(dataObj._radius)
+                    .shape(dataObj._shape)
+                    .event("point", function() {
                     return this.active(this.index).parent;
-                })
-                .event("unpoint", function() {
-                    return this.active(-1).parent;
-                })
-                .event('click', dataObj._notifier)
+                    })
+                    .event("unpoint", function() {
+                        return this.active(-1).parent;
+                    })
+                    .event('click', dataObj._notifier)
+
                 .anchor("right").add(pv.Label)
-                .visible(function() {
-                    return this.anchorTarget().active() == this.index;
-                })
-                .text(function(d) {
-                    return dataObj.COLUMNLABEL.value + " " + d[value];
-                });
+                    .visible(function() {
+                        return this.anchorTarget().active() == this.index;
+                    })
+                    .text(function(d) {
+                        return dataObj.COLUMNLABEL.value + " " + d[value];
+                    });
 
 
         /* Use an invisible panel to capture pan & zoom events. */
