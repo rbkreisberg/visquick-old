@@ -127,6 +127,7 @@ vq.ScatterPlot.prototype._render = function() {
                 return (d[y] && d[x]);
             }),
                 data_len = valid_data.length;
+                valid_data.sort(function(a,b) { return a[x] - b[x];});
         }
         if (regress==='linear') {
             var    sum_x = pv.sum(valid_data, function(d) {
@@ -150,8 +151,6 @@ vq.ScatterPlot.prototype._render = function() {
             var regions = new Array(3),
                 medians = new Array(3);
 
-                valid_data.sort(function(a,b) { return a[x] - b[x];});
-
             for (var i =0; i < 3; i++) {
                 regions[i] = valid_data.slice(data_len * (i / 3), data_len * ((i+1) / 3));
                 medians[i] = {
@@ -163,6 +162,10 @@ vq.ScatterPlot.prototype._render = function() {
             intercept = (  medians[0].y + medians[1].y + medians[2].y  - 
                     (slope * ( medians[0].x + medians[1].x + medians[2].x )) 
                         ) / 3;
+        } else if (regress ==='loess') {
+            var loess = vq.utils.Stats.loess().robustnessIterations(30).accuracy(1e-4);
+            var loess_y_values = loess(pv.map(valid_data,function(d) { return d[x];}),
+                                 pv.map(valid_data, function(d) { return d[y];}));
         }
         var line_minX = showMinX * 0.95;
         var line_maxX = showMaxX * 1.05;
@@ -236,7 +239,7 @@ vq.ScatterPlot.prototype._render = function() {
                 .events('all')
                 .overflow("hidden");
 
-        if (!isNaN(slope) && regress !=='') {
+        if (!isNaN(slope) && regress !=='' && regress !== 'loess') {
             panel.add(pv.Line)
                     .data([line_minX, line_maxX])
                     .left(function(d) {
@@ -244,6 +247,16 @@ vq.ScatterPlot.prototype._render = function() {
                     })
                     .bottom(function(d) {
                         return yScale(lineArray(d));
+                    })
+                    .strokeStyle("#0b0");
+        }else if (regress === 'loess') {
+             panel.add(pv.Line)
+                    .data(valid_data)
+                    .left(function(d) {
+                        return xScale(d[x]);
+                    })
+                    .bottom(function(d) {
+                        return yScale(loess_y_values[this.index]);
                     })
                     .strokeStyle("#0b0");
         }
