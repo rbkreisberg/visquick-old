@@ -500,10 +500,14 @@ pv.Behavior.hovercard = function(opts) {
             anchor_div.style.height =  opts.on_mark ? Math.ceil(this.height() * t.k) + 1 : 1;
         }
         else if (this.properties.radius) {
-            var r = this.radius();
-            t.x -= r;
-            t.y -= r;
-            anchor_div.style.height = anchor_div.style.width = Math.ceil(2 * r * t.k);
+            try{
+                var r = this.radius();
+                t.x -= r;
+                t.y -= r;
+                anchor_div.style.height = anchor_div.style.width = Math.ceil(2 * r * t.k);
+            } catch (e) {
+                console.warn('Hovercard: Radius of mark not detected.');
+            }
         }
         anchor_div.style.left = opts.on_mark ? Math.floor(this.left() * t.k + t.x) + "px" : Math.floor(mouse_x  * t.k+ t.x)  + "px";
         anchor_div.style.top = opts.on_mark ? Math.floor(this.top() * t.k + t.y) + "px" : Math.floor(mouse_y * t.k + t.y) + "px";

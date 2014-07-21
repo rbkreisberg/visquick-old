@@ -85,10 +85,14 @@ pv.Behavior.flextip = function(opts) {
             anchor_div.style.height =  opts.on_mark ? Math.ceil(this.height() * t.k) + 1 : 1;
         }
         else if (this.properties.radius) {
-            var r = this.radius();
-            t.x -= r;
-            t.y -= r;
-            anchor_div.style.height = anchor_div.style.width = Math.ceil(2 * r * t.k);
+            try {
+                var r = this.radius();
+                t.x -= r;
+                t.y -= r;
+                anchor_div.style.height = anchor_div.style.width = Math.ceil(2 * r * t.k);
+            } catch (e) {
+                console.warn('Flextips: Mark radius not detected.');
+            }
         }
 //        var width = this.width() ? this.width() : this.properties.radius ? this.radius() * 2 : 0;
 //        var height = this.height() ? this.height() : this.properties.radius ? this.radius() * 2 : 0;
